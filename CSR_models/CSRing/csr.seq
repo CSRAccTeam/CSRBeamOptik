@@ -1,0 +1,155 @@
+! in Uebereinstimmung mit COSYINFINITY
+! CSR_hf_mai_2005.fox
+! M. G. Januar 2011
+!
+! Dispersion o.k
+! Alphaparameter o.k
+! d. h. in Uebereinstimmung mit cosy infinity !!!!
+!
+! In this file, the components of the CSR are defined
+! and set for MADX
+!
+!----------------------------------------------------
+!------------------ GLOBALS -------------------------
+!----------------------------------------------------
+! E=20 keV Proton
+
+TITLE, "CRIOGENIC STORAGE RING";
+
+ENERGY:= 0.02/1000; ! Energie in GeV
+MASSE0:= 0.9385;     ! Masse;
+
+EGES  := MASSE0+ENERGY;
+GAMMA := EGES/MASSE0;
+BETA  := SQRT(1-1/(GAMMA*GAMMA));
+
+VALUE, GAMMA;
+VALUE, BETA;
+
+emmix := 100E-6;    ! definiert ueber 2 sigma
+emmiy := 100e-6;    ! definiert ueber 2 sigma
+DELPP := 0.01*BETA; ! 2 sigma Wert von Deltap_p
+
+Ekin_classisch := 0.5*masse0*1E6*beta*beta;
+VALUE, Ekin_classisch;
+
+
+!-----------------------------------------------
+!------------- Cylinder Deflector --------------
+!-----------------------------------------------
+! LD - Path length
+! rho-radius
+! BETA - velocity
+! gamma-E/mc**2
+
+RHO:=1.;
+LD:=(RHO*pi/180)*39/10;
+
+RK:=SQRT(2.)/RHO;
+DISP:=2./RHO;
+
+DEFLECTOR_SEC :  MATRIX, L=LD,
+	      	 RM11=COS(RK*LD),
+		 RM12=(SIN(RK*LD))/RK, 
+             	 RM16=(1-COS(RK*LD))*DISP/RK/RK/BETA, 
+                 RM21=-SIN(RK*LD)*RK,
+		 RM22=COS(RK*LD), 
+                 RM26=SIN(RK*LD)*DISP/RK/BETA, 
+                 RM33=1.,
+		 RM34=LD, 
+                 RM43=0.,
+		 RM44=1., 
+                 RM51=-SIN(RK*LD)*DISP/RK/BETA, 
+                 RM52=-(1-COS(RK*LD))*DISP/RK/RK/BETA, 
+                 RM55=1.0, 
+                 RM56=(-(LD-SIN(RK*LD)/RK)*DISP*DISP/RK/RK+LD/GAMMA/GAMMA)/BETA/BETA, 
+                 RM66=1.0;
+a: vkicker;
+DEFLECTOR: line=(a, 10*(DEFLECTOR_SEC,a));
+  
+h1: hkicker,kick=0.1*3.14/180;
+
+! Deflektor mit Feld Fehler
+
+Deflektor_f: line=(a,5*(DEFLECTOR_SEC,a),h1,5*(DEFLECTOR_SEC,a));
+
+!--------------------------------------------------
+!------------- Cylinder Deflector_k ----------------
+!--------------------------------------------------
+! LD_K - Path length
+! RHO_K-radius
+! BETA - velocity
+! gamma-E/mc**2
+
+RHO_K:=2;
+LD_K:=(RHO_K*pi/180)*6/5;
+
+RK_K:=SQRT(2.)/RHO_K;
+DISP_K:=(2.)/RHO_K;
+
+DEFLECTOR_K_SEC :  MATRIX, L=LD_K,
+		   RM11=COS(RK_K*LD_K),
+  		   RM12=(SIN(RK_K*LD_K))/RK_K,
+  		   RM16=(1-COS(RK_K*LD_K))*DISP_K/RK_K/RK_K/BETA, 
+  		   RM21=-SIN(RK_K*LD_K)*RK_K,
+		   RM22=COS(RK_K*LD_K), 
+  		   RM26=SIN(RK_K*LD_K)*DISP_K/RK_K/BETA,
+  		   RM33=1,
+		   RM34=LD_K, 
+  		   RM43=0,
+		   RM44=1,
+  		   RM51=-SIN(RK_K*LD_K)*DISP_K/RK_K/BETA, 
+  		   RM52=-(1-COS(RK_K*LD_K))*DISP_K/RK_K/RK_K/BETA,
+		   RM55=1.0,
+  		   RM56=(-(LD_K-SIN(RK_K*LD_K)/RK_K)*DISP_K*DISP_K/RK_K/RK_K+
+			LD_K/GAMMA/GAMMA)/BETA/BETA, 
+  		   RM66=1.0;			     
+
+ b: vkicker;
+ DEFLECTOR_k: line=(b,5*(DEFLECTOR_K_SEC,b));
+
+!-----------------------------------------------------------
+!--------------------- BEAM LINE --------------------------- 
+!-----------------------------------------------------------
+
+D1_seg: Drift, L=0.14;
+D1: line=(10*D1_seg); ! Drift 1.4 m
+! douplett
+skalierung=1.059599;  ! Skalierfaktor von Tosca
+Q1: Quadrupole, L=0.2, k1=5.511707;  ! Q1
+D2: Drift, L=0.15;
+Q2: Quadrupole, L=0.2, k1=-6.90466;  ! Q2
+douplett: line=(Q1,d2,Q2);
+D3: Drift, L=0.2;
+! DEFLECTOR_K
+D4_seg: Drift, L=0.11;
+D4: line=(10*D4_seg);
+! DEFLECTOR
+D5_seg: Drift, l=0.5/3;
+D5: line=(3*D5_seg);
+! DEFLECTOR
+! D4
+! DEFLECTOR_K
+! D3
+! -douplett
+! D1
+
+
+ring_4:  line=(D1,douplett,D3,DEFLECTOR_K,d4,DEFLECTOR,
+               D5,DEFLECTOR,D4,DEFLECTOR_K,D3,-douplett,D1);
+
+ring_4f: line=(D1,douplett,D3,DEFLECTOR_K,d4,DEFLEKTOR_f, &
+               D5,DEFLECTOR,D4,DEFLECTOR_K,D3,-douplett,D1);
+
+ring_f:  line=(ring_4f, -ring_4, ring_4, -ring_4);
+
+
+ring: line=(ring_4, -ring_4, ring_4, -ring_4);
+
+! resonator: rfcavity, volt=10/1e6, harmon=1
+
+csring: line=(ring_4 , -ring_4, ring_4, -ring_4);
+
+!----------------------------------------------------------
+!------------ END BEAMLINE DEFINITION ---------------------
+!----------------------------------------------------------
