@@ -1,0 +1,9 @@
+! 05.April.2019
+! CS Ring file for MADX
+! taken from the original MAD8 authored by Manfred Grieser.
+
+call, file="csr.seq";
+BEAM, PARTICLE=PROTON, ENERGY=EGES, EX=emmix, EY=emmiy,
+      ET=emmix, NPART=1e7;
+USE,  PERIOD=csring;
+
