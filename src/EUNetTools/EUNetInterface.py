@@ -18,7 +18,7 @@ class EUNetInterface:
         self.defaultIP   = clientIP_Port[0]
         self.defaultPort = clientIP_Port[1]
         self.client = self.initializeClient()
-        self.binSize = 100
+        self.binSize = 20
         self.sleepTime = 0.05
         if (self.client.connect()):
             print('Connection stablished with client')

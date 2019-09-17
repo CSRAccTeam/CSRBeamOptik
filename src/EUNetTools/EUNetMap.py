@@ -69,7 +69,8 @@ class EUNetMap:
         """
         # TODO: Implement a work around if the value is too high or too low
         crCaCh, minMaxRange = self.devProperty_to_crCaCh(devName, prop)
-        inRange = dValue <= minMaxRange[1]*0.01 and dValue >= minMaxRange[0]*0.01
+        # inRange = dValue <= minMaxRange[1]*0.01 and dValue >= minMaxRange[0]*0.01
+        inRange = (dValue <= 1 and dValue >= 0)
         if(crCaCh == False): raise Exception('Property not found!')
         if(crCaCh[3] == 'output' and inRange):
             self.theInterface.setValue(dValue, crCaCh[:-1])
