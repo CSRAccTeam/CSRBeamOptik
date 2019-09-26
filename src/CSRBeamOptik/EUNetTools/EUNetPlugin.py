@@ -1,17 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jul 04 12:50:00 2019
-@author: C. Cortes
-"""
-#from EUNetTools.EUNetMap import EUNetMap
 from CSRBeamOptik.EUNetTools.EUNetClient import EUNetClient
+
 
 class EUNetPlugin:
 
     def __init__(self):
         """
         This class simplifies the connection to the devices
-        by offering the functionability asked for
+        by offering the straight-forward functionability.
+        The user only has to know the name of the devices.
         """
         self.manager = EUNetManager()
         
@@ -30,33 +26,58 @@ class EUNetPlugin:
         """
         pass
 
-    def close(self):
-        self.manager.closeSession()
+    def close(self): self.manager.closeSession()
 
         
 class EUNetManager:
 
     def __init__(self):
-        #TODO: Implement a generic way for finding this path
-        self.configFolder = '../../configFiles/'
-        self.globalConfig = self.setGlobalConfig()
-        #self.theMaps = self.setTheMaps()
+        """
+        The EUNetManager connects to the user defined servers
+        and controls the communication with the clients
+        """
+        self.configFolder   = '/home/blm/ccortes/MPIK/CSR/CSRBeamOptik/configFiles/'
+        self.globalConfig   = self.setGlobalConfig()
+        self.clientNameList = []
+        self.clients        = {}
+        self.clientDevices  = {}
+        self.initClients()
 
     def setGlobalConfig(self):
-        # TODO: Implement correct packaging for user convenience
-        globalConfigFile = 'global.csv'
+        globalConfigFile = 'global.yaml'
         return self.configFolder + globalConfigFile
 
-    def setTheMaps(self):
+    def initClients(self):
         """
         Initializes the maps which then have access to
         the client and devices specified in the global config
         """
-        theMaps = []
-        clients = self.readCsvFile(self.globalConfig)
-        for c in clients: c[2] = self.configFolder + c[2]
-        for c in clients: theMaps.append(EUNetMap(*c))
-        return theMaps
+        from CSRBeamOptik.util.loadFiles import readYamlFile, readCsvFile
+        clientList       = {}
+        clientDeviceList = {}
+        clientGlobalData = readYamlFile(self.globalConfig)
+        
+        for clientName in clientGlobalData:
+            
+            clientData = clientGlobalData[clientName]
+            clientIP   = clientData['IP']
+            clientPort = clientData['Port']
+            clientDeviceListPath = self.configFolder + clientData['deviceList']
+
+            newClient  = EUNetClient(clientIP, clientPort)
+            clientDevices = readCsvFile(clientDeviceListPath)
+
+            clientList.update({clientName : newClient} )
+            clientDeviceList.update({clientName : clientDevices})
+            
+        self.clientNameList = list(clientList.keys())
+        self.clients        = clientList
+        c1 = self.clientNameList[0]
+
+    def readDeviceList(self, deviceListPath):
+        
+        data = readYamlFile(deviceListPath)
+        return data
         
     def isInDeviceList(self, devName):
         """
@@ -81,23 +102,7 @@ class EUNetManager:
         """
         Terminates all the connections to the servers. 
         """
-        for m in self.theMaps: m.close()
-
-    def readCsvFile(self, theFile):
-        """
-        Reads the global config file and returns an array 
-        with the IPs, Ports and configFiles
-        GlobalConfig.csv has the format:
-        IP  Port  DeviceConfigFileName
-        """
-        #TODO: Implement this method in a util.py class
-        import csv
-        clients = []
-        with open( theFile ) as csvFile:
-            csvBuffer = csv.reader( csvFile, delimiter=',' )
-            for line in csvBuffer:
-                if(len(line)>0):
-                    server = line[0]
-                    if '#' in server: pass
-                    else: clients.append(line)
-        return clients        
+        print('Closing session')
+        for clientName in self.clientNameList:
+            client = self.clients[clientName]
+            client.close()

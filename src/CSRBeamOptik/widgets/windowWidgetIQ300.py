@@ -31,14 +31,17 @@ class mainWidget(QWidget):
         
     def setElementTables(self):
 
-        print(dir())
-        from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetPlugin
-
-        plugin = EUNetPlugin()
+        from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetManager
+        manager = EUNetManager()
+        #manager.closeSession()
+        #manager = EUNetManager()
+        #d1 = manager.get('D1', 'istWert')
+        #d2 = manager.get('D2', 'istWert')
+        #manager.closeSession()
         
         dipolesInfo      = [['Name', 'Current [A]', 'B_ist [mT]', 'B_soll [mT]'],
-                            ['Dipole1', 1., 0., 0.],
-                            ['Dipole2', 2., 0., 0.]]
+                            ['Dipole1', 1, 0., 0.],
+                            ['Dipole2', 2, 0., 0.]]
         quadDuplet1Info   = [['Name', 'Voltage [V]', 'K_mad', 'K_ist'],
                             ['Quad11', 11., 0., 0.],
                             ['Quad12', 12., 0., 0.]]
