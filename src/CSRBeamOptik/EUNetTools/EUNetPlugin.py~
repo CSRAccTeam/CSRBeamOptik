@@ -3,7 +3,7 @@
 Created on Thu Jul 04 12:50:00 2019
 @author: C. Cortes
 """
-from EUNetMap import EUNetMap
+from EUNetTools.EUNetMap import EUNetMap
 
 
 class EUNetPlugin:
@@ -38,7 +38,7 @@ class EUNetManager:
 
     def __init__(self):
         #TODO: Implement a generic way for finding this path
-        self.configFolder = '../configFiles/'
+        self.configFolder = '../../configFiles/'
         self.globalConfig = self.setGlobalConfig()
         self.theMaps = self.setTheMaps()
 

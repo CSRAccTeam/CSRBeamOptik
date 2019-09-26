@@ -3,7 +3,7 @@
 Created on Tue Jun 21 17:07:00 2019
 @author: C. Cortes
 """
-from EUNetClient import EUNetClient
+from EUNetTools.EUNetClient import EUNetClient
 import numpy as np
 import time
 

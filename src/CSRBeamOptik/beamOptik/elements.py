@@ -56,4 +56,16 @@ class Deflector:
 
     def getBipolarValue(self, U, Umax):
         return (U + Umax)/ (2 * Umax)
-        
+
+class BendingMagnet:
+
+    def __init__(self, particle, lmad, leff):
+        self.particle = particle
+        self.lmad     = lmad
+        self.leff     = leff
+
+    def getBFeld(self):
+        pass
+
+    def getCurrent(self):
+        pass
