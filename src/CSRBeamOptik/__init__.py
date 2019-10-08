@@ -1,6 +1,7 @@
 """
-CSRBeamOptik is a Qt5 python GUI for monitoring and beam diagnostics tailor-suited
-for the accelerator facility for the Criogenic Storage Ring at the Max Planck 
+CSRBeamOptik is a Qt5 python GUI for monitoring beam line elements
+and beam diagnostics tailor-suited for the accelerator facility 
+for the Criogenic Storage Ring at the Max Planck 
 Institute for Nuclear Research in Heidelberg
 """
 

@@ -6,10 +6,9 @@ def CBSetValueDefault(iCrate, iCard, iCh, dValue):
     Defines what is to be done in case of callback,
     for the moment we do nothing
     """
-    #print("Received SetValue: Crate: " + str(iCrate) + " Card: " + \
-    #      str(iCard) + " Channel: " + str(iCh) + " Value: " + str(dValue))
-    pass
-
+    print("Received SetValue: Crate: " + str(iCrate) + " Card: " + \
+          str(iCard) + " Channel: " + str(iCh) + " Value: " + str(dValue))
+    
 def CBErrorDefault(Message):
     print("Error received: " + Message )
     
@@ -22,7 +21,6 @@ class EUNetClient:
         The EUNetClient interacts directly with the server and
         can ask and set values
         """
-        print('Stablishing connection with EUNetClient')
         self._IP   = IP
         self._Port = Port
         self._MySocket   = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
