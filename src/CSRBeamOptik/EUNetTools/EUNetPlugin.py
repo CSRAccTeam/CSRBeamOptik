@@ -14,7 +14,7 @@ class EUNetPlugin:
     def set(self, devName, value):
         self.manager.setValue(devName, value)
     
-    def get(self, devName, prop):
+    def get(self, devName):
         return self.manager.getValue(devName)
 
     def getDeviceList(self):
@@ -42,17 +42,14 @@ class EUNetManager:
         self.clients        = {}
         self.clientsDevices = {}
         self.initClients()
-        self.test()
-        self.closeSession()
-
+        
     def setGlobalConfig(self):
         globalConfigFile = 'global.yaml'
         return self.configFolder + globalConfigFile
 
     def initClients(self):
         """
-        Initializes the maps which then have access to
-        the client and devices specified in the global config
+        Initializes the clients data
         """
         from CSRBeamOptik.util.loadFiles import readYamlFile
         clientList       = {}
@@ -74,48 +71,70 @@ class EUNetManager:
         self.clientNameList = list(clientList.keys())
         self.clients        = clientList
         self.clientsDevices = clientDeviceList
-        self.connectClients()
+        self._connectClients()
 
-    def connectClients(self):
-        print('   Connecting with clients')
+    def _connectClients(self):
+        """
+        Initializes the connection
+        """
         for clientName in self.clientNameList:
             client = self.clients[clientName]
             client.connect()
 
     def getValue(self, devName):
+        # Looks for the client who has the device
         clientName = self._getClientName(devName)
-        client     = self.clients[clientName]
-        devices    = self.clientsDevices[clientName]
-        device     = devices[devName]
-        readInfo   = device['istWert']
-        crate      = readInfo['crate']
-        card       = readInfo['card']
-        channel    = readInfo['channel']
-        return client.getValue(crate,card,channel)
+        if clientName:
+            return self._readDeviceInfo(devName, clientName)
+        else:
+            raise Exception('Device not found')
 
     def _getClientName(self, devName):
         for clientName in self.clientNameList:
             devices = self.clientsDevices[clientName]
             if devName in devices: return clientName
         print('Warning: Device not found')
-        
-    def setValue(self, devName, prop, dValue):
-        m = self.isInDeviceList(devName)
-        if m[0]: m[1].setValue(devName, prop, dValue)
-        else: raise Exception('Device not found')
+        return False
 
+    def _readDeviceInfo(self, devName, clientName):
+        client = self.clients[clientName]
+        clientDevices = self.clientsDevices[clientName]
+        
+        device  = clientDevices[devName]
+        element = device['element']
+        elementType = device['type']
+        
+        if element == 'Dipole':
+            devInfo = device['istWert']
+        elif element == 'Quadrupole':
+            if elementType == 'magnetisch':
+                devInfo = device['istWert']
+            else:
+                devInfo = device['horizontal']
+                devInfo = devInfo['istWert']
+        elif element == 'Quadrupole_kicker':
+            devInfo = device['horizontal']
+            devInfo = devInfo['istWert1']
+        else:
+            raise Exception('Element not yet implemented')
+
+        crate   = devInfo['crate']
+        card    = devInfo['card']
+        channel = devInfo['channel']
+        read, rawValue = client.getValue(crate, card, channel)
+        if device['min'] < 0. :
+            value = rawValue - 0.5
+            value = 2*value*device['max']
+        else:
+            value = rawValue*device['max']
+        return value
+        
     def readDeviceList(self, deviceListPath):
         data = readYamlFile(deviceListPath)
         return data
-        
-    def isInDeviceList(self, devName):
-        """
-        Returns the map which contains the device
-        """
-        for m in self.theMaps:
-            if m.isInDeviceList(devName): return [True, m]
-        print('Warning: Device not found')
-        return [False]
+
+    def getDevicesInfo(self, clientName):
+        return self.clientsDevices[clientName]
 
     def closeSession(self):
         """
@@ -126,9 +145,6 @@ class EUNetManager:
             client = self.clients[clientName]
             client.close()
 
-    def test(self):
-        dipole1 = 'D1'
-        dipole2 = 'D2'
-        print('  Getting some values')
-        print(self.getValue(dipole1))
-        print(self.getValue(dipole2))
+    def setValue(self, devName, dValue):
+        # TODO: Implement set function
+        pass

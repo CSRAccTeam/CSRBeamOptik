@@ -6,8 +6,9 @@ def CBSetValueDefault(iCrate, iCard, iCh, dValue):
     Defines what is to be done in case of callback,
     for the moment we do nothing
     """
-    print("Received SetValue: Crate: " + str(iCrate) + " Card: " + \
-          str(iCard) + " Channel: " + str(iCh) + " Value: " + str(dValue))
+    #print("Received SetValue: Crate: " + str(iCrate) + " Card: " + \
+    #      str(iCard) + " Channel: " + str(iCh) + " Value: " + str(dValue))
+    pass
     
 def CBErrorDefault(Message):
     print("Error received: " + Message )
@@ -61,27 +62,29 @@ class EUNetClient:
         except socket.timeout:
             print("Timeout while sending Set_WERT " + self._IP)
             return False
-        # Is this really an Operative System Error?
         except OSError as err:
             print("Error while sending Set_WERT: " + err.strerror)
             return False
         
     def setBitfeld(self, iCrate, iCard, iCh, iBitfeld):
         try:
-            self._MySocket.send(bytes("SET_BITFELD " + str(iCrate) + " " + str(iCard) + \
-                                      " " + str(iCh) + " " + str(iBitfeld) + "\n", 'utf-8'))
+            self._MySocket.send(bytes("SET_BITFELD " + \
+                                      str(iCrate)   + " " + \
+                                      str(iCard)    + " " + \
+                                      str(iCh)      + " " + \
+                                      str(iBitfeld) + "\n", 'utf-8'))
             return True
         except socket.timeout:
             print("Timeout while sending SET_BITFELD " + self._IP)
             return False
-        # Is this really an Operative System Error?
         except OSError as err:
             print("Error while sending SET_BITFELD: " + err.strerror)
             return False
     
     def setCBSetValue(self,SETValueCB):
         """ 
-        Sets a CallBack-Function which will be called, when receiving a 'SET_WERT'
+        Sets a CallBack-Function which will be called,
+        when receiving a 'SET_WERT'
         (information for clients, that a set-value is set)
         """
         self._CBSetValue=SETValueCB  
@@ -101,8 +104,10 @@ class EUNetClient:
   
     def _checkForMessage(self, InputString):
         """
-        Check given String for PING and Error Messages - returns Tupel with Value and String
-        If Value > 0 Then it is an error(1) or message(2) - on Ping the returned string is empty.
+        Check given String for PING and 
+        Error Messages - returns Tupel with Value and String
+        If Value > 0 Then it is an error(1) 
+        or message(2) - on Ping the returned string is empty.
         If any Keyword found it returns 0 and the given String
         """
         if InputString[:5] == "PING": 
@@ -125,9 +130,11 @@ class EUNetClient:
         if  InputString[:8] == "SET_WERT" :
             tokens = InputString.split(" ")
             tokens = list(filter(None,tokens))
-            #https://stackoverflow.com/questions/3845423/remove-empty-strings-from-a-list-of-strings
+            #https://stackoverflow.com/questions/3845423/
+            #remove-empty-strings-from-a-list-of-strings
             if len(tokens) == 5:
-                self._CBSetValue(int(tokens[1]),int(tokens[2]), int(tokens[3]), float(tokens[4]))
+                self._CBSetValue(int(tokens[1]), int(tokens[2]),
+                                 int(tokens[3]), float(tokens[4]))
                 return (1,"")
             else :
                 return (-1,"Parsing Error from :\"" + InputString +  "\"")
@@ -139,7 +146,9 @@ class EUNetClient:
         Returns tupel of boolean and Value
         """
         try:
-            self._MySocket.send(bytes("GET_WERT " + str(iCrate) + " " + str(iCard) + " " +\
+            self._MySocket.send(bytes("GET_WERT " + \
+                                      str(iCrate) + " " + \
+                                      str(iCard) + " " + \
                                       str(iCh)  + "\n", 'utf-8'))
             # Is the while loop really necessary ? 
             while True:
@@ -172,19 +181,19 @@ class EUNetClient:
             print("Timeout while sending GET_WERT or waiting for answer " + self._IP)
             return (False, 0.0)
         except OSError as err:
-            print("Timeout while sending GET_WERT or waiting for answer : " + err.strerror)
+            print("Timeout while sending GET_WERT or waiting for answer : " + \
+                  err.strerror)
             return (False, 0.0)
                       
-        
-
     def getBitfeld(self,iCrate,iCard,iCh):
         """
         Returns tupel of boolean and Value
         """
         try:
-            self._MySocket.send(bytes("GET_BITFELD " + str(iCrate) + " " + str(iCard) +\
-                                      " " + str(iCh)  + "\n", 'utf-8'))
-    
+            self._MySocket.send(bytes("GET_BITFELD " + \
+                                      str(iCrate) + " " + \
+                                      str(iCard)  + " " + \
+                                      str(iCh)    + "\n", 'utf-8'))
             while True:
                 (errNo,Line) = self._checkForMessage(self._getLineFromSocket())
                 if errNo > 0:
@@ -216,6 +225,6 @@ class EUNetClient:
             print("Timeout while sending GET_WERT or waiting for answer " + self._IP)
             return (False, 0)
         except OSError as err:
-            print("Timeout while sending GET_WERT or waiting for answer : " + err.strerror)
-            return (False, 0)
-                      
+            print("Timeout while sending GET_WERT or waiting for answer : " + \
+                  err.strerror)
+            return (False, 0)                  

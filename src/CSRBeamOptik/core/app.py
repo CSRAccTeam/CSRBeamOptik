@@ -16,7 +16,9 @@ def init_app(argv=None, gui=True):
 def main(argv=None, MainWindow=None):
     from CSRBeamOptik.widgets.mainWindow import mainWindow
     from PyQt5.QtWidgets import QApplication
-    app = QApplication(sys.argv)
+    app   = QApplication(sys.argv)
     mainW = mainWindow()
     sys.exit(app.exec_())
+
+
     

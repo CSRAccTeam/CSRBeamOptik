@@ -1,11 +1,18 @@
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import (QTableWidgetItem, QWidget, QGridLayout, QFormLayout,
-                             QTextEdit, QLineEdit, QLabel, QTableWidget)
+                             QTextEdit, QLineEdit, QLabel, QTableWidget,
+                             QPushButton)
 
 class mainWidget(QWidget):
 
     def __init__(self):
+
         super().__init__()
+        
+        from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetManager
+        self.manager    = EUNetManager()
+        self.clientName = 'IQ300'
+        self.deviceList = self.manager.getDevicesInfo(self.clientName)
         self.initUI()
         
     def initUI(self):
@@ -13,55 +20,46 @@ class mainWidget(QWidget):
         self.setElementTables()
         self.setTableTitles()
         self.setLayout(mainGrid)
-        
-        mainGrid.addWidget(self.dipolesTitle,      0, 0)
-        mainGrid.addWidget(self.dipoleTable,       1, 0)
-        mainGrid.addWidget(self.quadDupletTitle,   2, 0)
-        mainGrid.addWidget(self.quadDuplet1Table,  3, 0)
-        mainGrid.addWidget(self.quadDuplet2Table,  4, 0)
-        mainGrid.addWidget(self.quadTripletTitle,  5, 0)#, 1, 2)
-        mainGrid.addWidget(self.quadTriplet1Table, 6, 0)
-        mainGrid.addWidget(self.quadTriplet2Table, 7, 0)
 
+        for i in range(3):
+            mainGrid.addWidget(self.titles[i], 2*i,   0)
+            mainGrid.addWidget(self.tables[i], 2*i+1, 0)#, 1, 2)
+        
     def setTableTitles(self):
 
-        self.dipolesTitle     = self.createTableTitle('DIPOLES')
-        self.quadDupletTitle  = self.createTableTitle('QUADRUPOLE DUPLETS')
-        self.quadTripletTitle = self.createTableTitle('QUADRUPOLE TRIPLETS')
+        dipolesTitle     = self.createTableTitle('DIPOLES')
+        quadDupletTitle  = self.createTableTitle('QUADRUPOLE DUPLETS')
+        quadTripletTitle = self.createTableTitle('QUADRUPOLE TRIPLETS')
+        self.titles = [dipolesTitle,
+                       quadDupletTitle,
+                       quadTripletTitle]
         
     def setElementTables(self):
-
-        from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetManager
-        manager = EUNetManager()
-        #manager.closeSession()
-        #manager = EUNetManager()
-        #d1 = manager.get('D1', 'istWert')
-        #d2 = manager.get('D2', 'istWert')
-        #manager.closeSession()
         
-        dipolesInfo      = [['Name', 'Current [A]', 'B_ist [mT]', 'B_soll [mT]'],
-                            ['Dipole1', 1, 0., 0.],
-                            ['Dipole2', 2, 0., 0.]]
-        quadDuplet1Info   = [['Name', 'Voltage [V]', 'K_mad', 'K_ist'],
-                            ['Quad11', 11., 0., 0.],
-                            ['Quad12', 12., 0., 0.]]
-        quadDuplet2Info   = [['Name', 'Voltage [V]', 'K_mad', 'K_ist'],
-                            ['Quad21', 11., 0., 0.],
-                            ['Quad22', 12., 0., 0.]]
-        quadTriplet1Info = [['Name', 'Voltage [V]', 'K_mad', 'K_ist'],
-                            ['Quad31', 31., 0., 0.],
-                            ['Quad32', 32., 0., 0.],
-                            ['Quad33', 33., 0., 0.]]
-        quadTriplet2Info = [['Name', 'Voltage [V]', 'K_mad', 'K_ist'],
-                            ['Quad41', 41., 0., 0.],
-                            ['Quad42', 42., 0., 0.],
-                            ['Quad43', 43., 0., 0.]]
+        dipolesInfo     = [['Name', 'Current [A]',  'B_ist [mT]', 'B_soll [mT]']]
+        quadDupletInfo  = [['Name', 'Current [A]',  'K_ist', 'K_mad']]
+        quadTripletInfo = [['Name', 'Voltage [kV]', 'K_ist', 'K_mad']]
 
-        self.dipoleTable       = self.createTable(dipolesInfo)
-        self.quadDuplet1Table  = self.createTable(quadDuplet1Info)
-        self.quadDuplet2Table  = self.createTable(quadDuplet2Info)
-        self.quadTriplet1Table = self.createTable(quadTriplet1Info)
-        self.quadTriplet2Table = self.createTable(quadTriplet2Info)
+        for device in self.deviceList:
+            devInfo = self.deviceList[device]
+            element = devInfo['element']
+            eleType = devInfo['type']
+            elGroup = devInfo['group']
+            readValue = round(self.manager.getValue(device), 3)
+            if 'Dipoles' in elGroup:
+                dipolesInfo.append([device, readValue ,0., 0.])
+            elif 'Duplet' in elGroup:
+                quadDupletInfo.append([device, readValue, 0., 0.])
+            elif 'Triplet' in elGroup:
+                quadTripletInfo.append([device, readValue, 0., 0.])
+                
+        dipoleTable      = self.createTable(dipolesInfo)
+        quadDupletTable  = self.createTable(quadDupletInfo)
+        quadTripletTable = self.createTable(quadTripletInfo)
+
+        self.tables = [dipoleTable,
+                       quadDupletTable,
+                       quadTripletTable]
 
     def createTableTitle(self, title):
         label = QLabel()
@@ -94,6 +92,17 @@ class mainWidget(QWidget):
                 tableItem.setFlags(enableItem)
         return newTable
 
+    def refreshTable(self):
+        for table in self.tables:
+            rows = table.rowCount()
+            cols = table.columnCount()
+            for i in range(rows):
+                devNameItem = table.item(i, 0)
+                devName = devNameItem.text()
+                readValue = round(self.manager.getValue(devName), 3)
+                devReadItem = table.item(i, 1)
+                devReadItem.setText('{}'.format(readValue))
+            
     def getQTableWidgetItemFlags(self):
         """
         Just for documentation of how to make editable the table Items
