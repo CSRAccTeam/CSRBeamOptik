@@ -103,7 +103,7 @@ class EUNetManager:
         device  = clientDevices[devName]
         element = device['element']
         elementType = device['type']
-        
+        # User-defined element categorization 
         if element == 'Dipole':
             devInfo = device['istWert']
         elif element == 'Quadrupole':

@@ -1,5 +1,5 @@
 import numpy as np
-from constants import *
+from CSRBeamOptik.beamOptik.Constants import *
 
 class Quadrupole:
 
@@ -20,6 +20,11 @@ class Quadrupole:
         kMad = (leff * Q * corr * Uquad) / (lmad * r02 * eKin)
         return kMad
 
+    def getkSoll(self):
+        # TODO: Implement computation of k Value as
+        # function of working point Q
+        return 'Not implemented'
+
     def getUquad(self, kMad):
         lmad  = self.lmad
         leff  = self.leff
@@ -29,6 +34,29 @@ class Quadrupole:
         corr  = self.correction
         Uquad = (lmad * r02 * eKin * kMad) / (leff * Q * corr)
         return kMad
+
+class QuadrupoleMagnetisch:
+
+    def __init__(self, particle, lmad, leff, corr=1):
+        self.particle   = particle
+        self.lmad       = lmad
+        self.leff       = leff
+        self.correction = corr
+
+    def getkMad(self, current):
+        # TODO: Implement computation of k Value as
+        # function of measured current
+        return 'Not implemented'
+
+    def getkSoll(self):
+        # TODO: Implement computation of k Value as
+        # function of working point Q
+        return 'Not implemented'
+
+    def getCurrent(self, kMad):
+        # TODO: Implement computation of current as
+        # function of wished k Value
+        return 'Not implemented'
 
 class Deflector:
 
@@ -59,13 +87,21 @@ class Deflector:
 
 class BendingMagnet:
 
-    def __init__(self, particle, lmad, leff):
+    def __init__(self, particle, lmad, leff, h):
         self.particle = particle
         self.lmad     = lmad
         self.leff     = leff
+        self.bendR    = h
 
-    def getBFeld(self):
-        pass
+    def getBFeldSoll(self):
+        return self.particle.getSteifigkeit() / self.bendR
 
-    def getCurrent(self):
+    def getBFeld(self, current):
+        # TODO: Implement BFeld as function of the current
+        # We need calibration curves B(I)
+        return 'Not implemented'
+    
+    def getCurrent(self, BFeld):
+        # TODO: Implement current as function of BFeld
+        # We need calibration curves B(I)
         pass

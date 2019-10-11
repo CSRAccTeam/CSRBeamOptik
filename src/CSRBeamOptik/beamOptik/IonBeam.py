@@ -1,5 +1,5 @@
 import numpy as np
-from constants import *
+from CSRBeamOptik.beamOptik.Constants import *
 
 class ChargedParticle:
 
