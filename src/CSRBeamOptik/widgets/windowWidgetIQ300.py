@@ -35,8 +35,8 @@ class mainWidget(QWidget):
         
     def initElementTables(self):
         dipolesInfo     = [['Name', 'Current [A]',  'B_ist [mT]', 'B_soll [mT]']]
-        quadDupletInfo  = [['Name', 'Current [A]',  'K_ist', 'K_soll']]
-        quadTripletInfo = [['Name', 'Voltage [kV]', 'K_ist', 'K_soll']]
+        quadDupletInfo  = [['Name', 'Current [A]',  'K_ist [m^-2]', 'K_soll [m^-2]']]
+        quadTripletInfo = [['Name', 'Voltage [kV]', 'K_ist [m^-2]', 'K_soll [m^-2]']]
 
         for devName in self.deviceList:
             devInfo = self.deviceList[devName]

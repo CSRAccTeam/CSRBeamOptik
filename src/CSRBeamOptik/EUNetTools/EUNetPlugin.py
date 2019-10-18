@@ -8,13 +8,16 @@ class EUNetPlugin:
         This class simplifies the connection to the devices
         by offering the straight-forward functionability.
         The user only has to know the name of the devices.
+        The raw values are returned
         """
         self.manager = EUNetManager()
         
     def set(self, devName, value):
+        # TODO: Implement setter 
         self.manager.setValue(devName, value)
     
     def get(self, devName):
+        # TODO: Implement raw value return
         return self.manager.getValue(devName)
 
     def getDeviceList(self):

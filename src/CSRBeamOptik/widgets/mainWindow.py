@@ -3,15 +3,14 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QTimer
 
-from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetManager
 
 class mainWindow(QMainWindow):
     
-    def __init__(self, particle):
+    def __init__(self, particle, EUNetManager):
         
         super().__init__()
         self.particle     = particle
-        self.EUNetManager = EUNetManager()
+        self.EUNetManager = EUNetManager
         self.mainWidget   = self.getMainWidget()
         self.initUI()
         self.refreshCycle()
