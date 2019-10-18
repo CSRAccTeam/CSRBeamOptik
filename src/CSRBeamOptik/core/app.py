@@ -46,8 +46,8 @@ def initIonBeam():
     Q    = ionData['LadungIon']
     mass = ionData['MasseIon']
     ion  = ChargedParticle(eKin, Q, mass)
-    
-    return ion
+     
+   return ion
 
 def main(argv=None, MainWindow=None):
     from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetManager
