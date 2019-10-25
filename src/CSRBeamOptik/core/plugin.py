@@ -1,57 +1,87 @@
+"""
+Madgui online control plugin.
+"""
 
-class CSRBeamOptik:
+from __future__ import absolute_import
 
-    """Interface for a online control plugin."""
+import os
+import logging
+
+from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetManager
+
+import madgui.online.api as api
+from madgui.util.misc import relpath as safe_relpath
+from madgui.util.collections import Bool
+from madgui.util.qt import SingleWindow
+
+class _CSRBeamOptik(api.Backend):
 
     def __init__(self, session, settings):
+         self.session   = session
+         self.settings  = settings
+         self.connected = Bool(False)
+
+    # Backend API
 
     def connect(self):
-        """Connect the online plugin to the control system."""
+        """Connect to online database (must be loaded)."""
+        self.manager = EUNetManager()
+        isConnected  = self.manager.isConnected 
+        self.connected.set(isConnected)
 
     def disconnect(self):
-        """Unload the online plugin, free resources."""
+        """Disconnect from online database."""
+        logging.info('Disconnecting from EUNetClients')
+        self.manager.closeSession()
+        logging.info('Succesfully closed session')
+        self.connected.set(False)
 
     def execute(self):
-        """Commit transaction."""
+        """Execute changes (commits prior set_value operations)."""
+        raise NotImplementedError
 
     def param_info(self, knob):
         """Get parameter info for backend key."""
-        
+        return self.manager.clientNameList
         
     def read_monitor(self, name):
         """
-        Read out one monitor, return values as dict with keys:
-
-            widthx:     Beam x width
-            widthy:     Beam y width
-            posx:       Beam x position
-            posy:       Beam y position
+        Read out one monitor, return values as dict with keys
+        posx/posy/envx/envy.
         """
-        raise NotImplementedError
+        pass
 
-    def read_params(self, param_names=None):
+    def read_params(self, param_names=None, warn=True):
         """Read all specified params (by default all). Return dict."""
+        if param_names is None and self.connected:
+            param_names = self.manager.clientNameList
+            
+        return {
+            param: value
+            for param in param_names
+            for value in [self.read_param(param, warn=warn)]
+            if value is not None
+        }
 
-    def read_param(self, param):
+    def read_param(self, param, warn=True):
         """Read parameter. Return numeric value."""
+        paramName = param
+        try:
+            return self.manager.getValue(paramName)
+        except RuntimeError as e:
+            if warn:
+                logging.warning("{} for {!r}".format(e, param))
 
     def write_param(self, param, value):
         """Update parameter into control system."""
-        raise NotImplementedError
-    
-    def get_beam(self):
-        """
-        Return a dict ``{name: value}`` for all beam properties, in MAD-X
-        units. At least: particle, mass, charge, energy
-        """
-        raise NotImplementedError
+        pass
 
-ParamInfo = namedtuple('ParamInfo', [
-    'name',
-    'ui_name',
-    'ui_hint',
-    'ui_prec',
-    'unit',
-    'ui_unit',
-    'ui_conv',
-])
+    def get_beam(self):
+        pass
+
+class CSR_ACS(_CSRBeamOptik):
+
+    def __init__(self, session, settings):
+        """Connect to online database."""
+        super().__init__(session, settings)
+

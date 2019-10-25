@@ -1,31 +1,7 @@
 !----------------------------------------------------
 !------------------ GLOBALS -------------------------
 !----------------------------------------------------
-! E = 300 keV Proton
-
-TITLE, "Ion Source 300 kV";
-
-ENERGY:= 0.0003; ! Energie in GeV
-MASSE0:= 0.9385;      ! Masse;
-
-EGES  := MASSE0+ENERGY;
-GAMMA := EGES/MASSE0;
-BETA  := SQRT(1-1/(GAMMA*GAMMA));
-
-VALUE, GAMMA;
-VALUE, BETA;
-
-emmix := 30e-6;  
-emmiy := 30e-6;  
-DELPP := 0.01*BETA;
-
-Ekin_classisch := 0.5*masse0*1E6*beta*beta;
-VALUE, Ekin_classisch;
-
-
-BETAx300kV=0.28;
-Betay300kv=0.45;
-ALFA300kV=0;
+Q3A := 8.27;
 
 !-------------------------------------------------
 !------ ION SOURCE 300KV TRANSFER LINE -----------
@@ -67,7 +43,7 @@ DEFLEKTOR:    DRIFT, L=0.47;
 MONITOR4:     MONITOR;
 
 DRIFT14:      DRIFT, L=1.175;
-QD31:         QUADRUPOLE, L=0.159, K1=8.27; 
+QD31:         QUADRUPOLE, L=0.159, K1:=Q3A; 
 DRIFT15:      DRIFT, L=0.021;
 QD32:         QUADRUPOLE, L=0.159, K1=-22.32; 
 DRIFT16:      DRIFT, L=0.021;

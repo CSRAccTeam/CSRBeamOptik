@@ -40,6 +40,7 @@ def initIonBeam():
     ionDataKeys = ionConfig['ionDataKeys']
     ionData = requests.get(ionDataURL)
     ionData = ionData.text
+    print(ionData)
     ionData = _readIonData(ionData)
     
     eKin = ionData['EkinIon']
@@ -47,11 +48,12 @@ def initIonBeam():
     mass = ionData['MasseIon']
     ion  = ChargedParticle(eKin, Q, mass)
      
-   return ion
+    return ion
 
 def main(argv=None, MainWindow=None):
     from CSRBeamOptik.EUNetTools.EUNetPlugin import EUNetManager
-    particle = initIonBeam()
-    initApp(particle, EUNetManager())
+    EUNetManager = EUNetManager()
+    particle     = initIonBeam()
+    initApp(particle, EUNetManager)
 
     

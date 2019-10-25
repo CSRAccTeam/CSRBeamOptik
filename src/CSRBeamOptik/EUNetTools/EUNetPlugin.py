@@ -80,12 +80,15 @@ class EUNetManager:
         """
         Initializes the connection
         """
+        isConnected = False
         for clientName in self.clientNameList:
             client = self.clients[clientName]
-            client.connect()
+            isConnected += client.connect()
+        self.isConnected = isConnected
 
     def getValue(self, devName):
         # Looks for the client who has the device
+        print('Device Name:', devName)
         clientName = self._getClientName(devName)
         if clientName:
             return self._readDeviceInfo(devName, clientName)
@@ -143,7 +146,6 @@ class EUNetManager:
         """
         Terminates all the connections to the servers. 
         """
-        print('Closing session')
         for clientName in self.clientNameList:
             client = self.clients[clientName]
             client.close()
