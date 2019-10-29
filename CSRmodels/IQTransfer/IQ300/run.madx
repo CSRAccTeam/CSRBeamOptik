@@ -5,7 +5,6 @@
 TITLE, "Ion Source 300 kV"; 
 !DELPP = 0.01*BETA;
 
-call, file="IQ300.seq";
 BEAM, PARTICLE=PROTON,
       ENERGY=0.9385 + 0.0003, ! Proton mass + Ekin in GeV
       EX=30e-6,
@@ -13,6 +12,7 @@ BEAM, PARTICLE=PROTON,
       ET=30e-6,
       NPART=1e7;
       
+call, FILE="IQ300.seq";
 USE,    SEQUENCE=IQ300;
 select, flag=twiss, column={name,s,betx,bety,alfx,alfy,mux,muy,dx,dy,dpx,dpy,x,y,px,py};
 twiss,  sequence=IQ300, file="IQ300.twiss",

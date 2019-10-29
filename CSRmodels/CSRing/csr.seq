@@ -2,43 +2,43 @@
 ! Editing: C. Cortes 06.2019
 ! In this file, the components of the CSR are defined
 ! and set for MADX
-!
-!----------------------------------------------------
-!------------------ GLOBALS -------------------------
-!----------------------------------------------------
-! E=20 keV Proton
+!-------------------------------------------------
+!------------ CRYOGENIC STORAGE RING -------------
+!-------------------------------------------------
 
-TITLE, "CRIOGENIC STORAGE RING";
+const L_QD1 = 0.2;
+const L_QD2 = 0.2;
 
-ENERGY:= 0.02/1000; ! Energie in GeV
-MASSE0:= 0.9385;     ! Masse;
+!-------------------------------------------------
+!------------- ELEMENT STRENGTHS -----------------
+!-------------------------------------------------
 
-EGES  := MASSE0+ENERGY;
-GAMMA := EGES/MASSE0;
-BETA  := SQRT(1-1/(GAMMA*GAMMA));
-
-VALUE, GAMMA;
-VALUE, BETA;
-
-emmix := 100e-6;    ! definiert über 2-sigma
-emmiy := 100e-6;    ! definiert über 2-sigma
-DELPP := 0.01*BETA; ! 2 sigma Wert von Deltap_p
-
-Ekin_classisch := 0.5*masse0*1e6*beta*beta;
-VALUE, Ekin_classisch;
+kL_QD11 = 5.511707;
+kL_QD12 = -6.90466;
+kL_QD21 = -6.90466;
+kL_QD22 = 5.511707;
 
 !-----------------------------------------------
 !------------- Cylinder Deflector 39° ----------
 !-----------------------------------------------
-! LD - Path length
-! rho-radius
-! BETA - velocity
-! gamma-E/mc**2
 
-RHO:=1.;
-LD:=(RHO*pi/180)*39./10;
-RK:=SQRT(2.)/RHO;
-DISP:=2./RHO;
+!-------------------
+! LD - Path length !
+! rho-radius       !
+! BETA - velocity  !
+! gamma-E/mc**2    !
+!-------------------
+
+const MASSE0 = 0.9385;     ! Masse;
+ENERGY:= 0.0002; ! Energie in GeV
+EGES  := MASSE0+ENERGY;
+GAMMA := EGES/MASSE0;
+BETA  := SQRT(1-1/(GAMMA*GAMMA));
+
+const RHO  = 1.;
+const LD   = (RHO*pi/180)*39./10;
+const RK   = SQRT(2.)/RHO;
+const DISP = 2./RHO;
 
 DEFLECTOR_SEC :  MATRIX, L=LD,
 	      	 RM11=COS(RK*LD),
@@ -56,8 +56,7 @@ DEFLECTOR_SEC :  MATRIX, L=LD,
                  RM55=1.0, 
                  RM56=(-(LD-SIN(RK*LD)/RK)*DISP*DISP/RK/RK+LD/GAMMA/GAMMA)/BETA/BETA, 
                  RM66=1.0;
-VKICK:           vkicker;
-  
+VKICK:           vkicker;		 
 !h1: hkicker,kick=0.1*3.14/180;
 !Deflektor mit Feld Fehler
 !Deflektor_f: line=(a,(DEFLECTOR_SEC,a),h1,(DEFLECTOR_SEC,a));
@@ -70,11 +69,10 @@ VKICK:           vkicker;
 ! BETA - velocity
 ! gamma-E/mc**2
 
-RHO_K:=2;
-LD_K:=(RHO_K*pi/180)*6./5;
-
-RK_K:=SQRT(2.)/RHO_K;
-DISP_K:=(2.)/RHO_K;
+const RHO_K  = 2.;
+const LD_K   = (RHO_K*PI/180)*6./5;
+const RK_K   = SQRT(2.)/RHO_K;
+const DISP_K = (2.)/RHO_K;
 
 DEFLECTOR_K_SEC :  MATRIX, L=LD_K,
 		   RM11=COS(RK_K*LD_K),
@@ -102,9 +100,9 @@ DEFLECTOR_K_SEC :  MATRIX, L=LD_K,
 ! One sector of the machine
 
 DRIFT1:           Drift, L=1.4;
-QD11:             Quadrupole, L=0.2, k1=5.511707;
+QD11:             Quadrupole, L=L_QD1, k1:=kL_QD11;
 DRIFT2:           Drift, L=0.15;
-QD12:             Quadrupole, L=0.2, k1=-6.90466;
+QD12:             Quadrupole, L=L_QD1, k1:=kL_QD12;
 DRIFT3:           Drift, L=0.2;
 
 DEFLECTOR6_1:     line=(VKICK, 5*(DEFLECTOR_K_SEC,VKICK));
@@ -116,9 +114,9 @@ DRIFT6:           Drift, L=1.1;
 DEFLECTOR6_2:     line=(VKICK, 5*(DEFLECTOR_K_SEC,VKICK));
 
 DRIFT7:           Drift, L=0.2;
-QD21:             Quadrupole, L=0.2, k1=-6.90466;
+QD21:             Quadrupole, L=L_QD2, k1:=kL_QD21;
 DRIFT8:           Drift, L=0.15;
-QD22:             Quadrupole, L=0.2, k1=5.511707;
+QD22:             Quadrupole, L=L_QD2, k1:=kL_QD22;
 DRIFT9:           Drift, L=1.4;
 
 Section1:  line=(DRIFT1, QD11, DRIFT2, QD12, DRIFT3,
@@ -126,7 +124,7 @@ Section1:  line=(DRIFT1, QD11, DRIFT2, QD12, DRIFT3,
                  DRIFT5, DEFLECTOR39_2, DRIFT6, DEFLECTOR6_2,
 		 DRIFT7, QD21, DRIFT8, QD22, DRIFT9);
 
-csring: line=(Section1 , -Section1, Section1, -Section1);
+csring:    line = (Section1 , -Section1, Section1, -Section1);
 
 !----------------------------------------------------------
 !------------ END BEAMLINE DEFINITION ---------------------

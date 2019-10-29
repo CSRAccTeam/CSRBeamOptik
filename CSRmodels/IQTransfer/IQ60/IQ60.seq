@@ -1,37 +1,47 @@
 !----------------------------------------------------
-!------------------ GLOBALS -------------------------
+!----------- TRANSFER LINE CONSTANTS ----------------
 !----------------------------------------------------
-! E = 60 keV Proton
 
-TITLE, "Ion Source 60 kV";
+const L_QD1  = 0.1594;
+const L_QD2  = 0.1594;
+const L_QD3  = 0.1594;
+const L_QD4  = 0.1594;
 
-ENERGY:= 0.0002; ! Energie in GeV
-MASSE0:= 0.9385;      ! Masse;
+const bendR_BM_EZR = 0.35; 
+const DELTA = 26.5;  ! oder 28.5 (Datenblatt schlecht lesbar)
+const axgeo_BM_EZR = 90*PI/180;
+const L_BM_EZR = bendR_BM_EZR*axgeo_BM_EZR;
 
-EGES  := MASSE0+ENERGY;
-GAMMA := EGES/MASSE0;
-BETA  := SQRT(1-1/(GAMMA*GAMMA));
+const E1_BM_EZR = DELTA*PI/180;
+const E2_BM_EZR = DELTA*PI/180;
 
-VALUE, GAMMA;
-VALUE, BETA;
+!-------------------------------------------------
+!------------- ELEMENT STRENGTHS -----------------
+!-------------------------------------------------
 
-emmix := 30E-6;  
-emmiy := 30e-6;  
-DELPP := 0.01*BETA;
-
-Ekin_classisch := 0.5*masse0*1E6*beta*beta;
-VALUE, Ekin_classisch;
+kL_QD11 = -31.69;
+kL_QD12 = 45.33;
+kL_QD13 = -25.55;
+kL_QD21 = -20.53;
+kL_QD22 = 32.68;
+kL_QD23 = -18.47;
+kL_QD31 = 8.27;
+kL_QD32 = -22.32;
+kL_QD33 = 14.606;
+kL_QD41 = -9.63103;
+kL_QD42 = 18.3277;
+kL_QD43 = -10.0189;
 
 !-------------------------------------------------
 !--------ION SOURCE 60KV TRANSFER LINE -----------
 !-------------------------------------------------
 
 DRIFT1:       DRIFT, L=0.412;
-QD11:         QUADRUPOLE, L=0.15, K1=-31.69;
+QD11:         QUADRUPOLE, L=L_QD1, K1:=kL_QD11;
 DRIFT2_1:     DRIFT, L=0.03;
-QD12:         QUADRUPOLE, L=0.15, K1=45.33;
+QD12:         QUADRUPOLE, L=L_QD1, K1:=kL_QD12;
 DRIFT2_2:     DRIFT, L=0.03;
-QD13:         QUADRUPOLE, L=0.15, K1=-25.55;
+QD13:         QUADRUPOLE, L=L_QD1, K1:=kL_QD13;
 
 ! 0.15m bis Wand + 0.5m=Wand + 0.15m Gap
 DRIFT3:       DRIFT, L=0.7; 
@@ -41,19 +51,8 @@ DRIFT4:       DRIFT, L=0.7;
 !----------------   EZR MAGNET   -----------------
 !-------------------------------------------------
 
-RD:=0.35; 
-DELTA=26.5;  ! oder 28.5 (Datenblatt schlecht lesbar)
-WINKEL:=90*PI/180;
-
-KANTEN1_E1:=DELTA*PI/180;
-KANTEN1_E2:=DELTA*PI/180;
-
-! FINT 0.45 WEGEN RECHTECKFORM DER POLSCHUHE
-! AUS LITERATUR (MADX MANUAL & HINTERBERGER)
-! BENDING MAGNET
-
-BM_EZR:       SBEND, L=0.35*WINKEL, ANGLE=WINKEL,
-              K1=0, E1=KANTEN1_E1, E2= KANTEN1_E2,
+BM_EZR:       SBEND, L=L_BM_EZR, ANGLE=axgeo_BM_EZR,
+              E1=E1_BM_EZR, E2=E2_BM_EZR,
 	      HGAP=0.025, FINT=0.4;
 
 !--------------------------------------------------
@@ -63,11 +62,11 @@ DRIFT5:       DRIFT, L=0.7;
 MONITOR2:     MONITOR;
 DRIFT6:       DRIFT, L=1.12;
 
-QD21:         QUADRUPOLE, L=0.15, K1=-20.53;
+QD21:         QUADRUPOLE, L=L_QD2, K1:=kL_QD21;
 DRIFT7:       DRIFT, L=0.03;
-QD22:         QUADRUPOLE, L=0.15, K1=32.68;
+QD22:         QUADRUPOLE, L=L_QD2, K1:=kL_QD22;
 DRIFT8:       DRIFT, L=0.03;
-QD23:         QUADRUPOLE, L=0.15, K1=-18.47;
+QD23:         QUADRUPOLE, L=L_QD2, K1:=kL_QD23;
 
 DRIFT9:       DRIFT, L=0.639; !Gap + Steerer + Gap
 MONITOR3:     MONITOR;
@@ -77,11 +76,11 @@ DRIFT10:      DRIFT, L=0.15; ! 0.175m Focus
 !-----  zylindrischer Deflektor ohne Loch   -------
 !--------------------------------------------------
 
-RHO_K:=0.5;
-LD_K:=(RHO_K*pi/180)*90/50;
+const RHO_K = 0.5;
+const LD_K  = (RHO_K*PI/180)*90/50;
 
-RK_K:=SQRT(2.)/RHO_K;
-DISP_K:=(2.)/RHO_K;
+const RK_K   = SQRT(2.)/RHO_K;
+const DISP_K = (2.)/RHO_K;
 
 DEFLECTOR_K_SEC :  MATRIX, L=LD_K,
 		   RM11=COS(RK_K*LD_K),
@@ -112,11 +111,11 @@ DRIFT11:      DRIFT, L=0.175;! 0.175m Focus
 MONITOR5:     MONITOR;
 DRIFT12:      DRIFT, L=0.808; !Gap
 
-QD31:         QUADRUPOLE, L=0.15, K1=8.27; 
+QD31:         QUADRUPOLE, L=L_QD3, K1:=kL_QD31; 
 DRIFT13:      DRIFT, L=0.03;
-QD32:         QUADRUPOLE, L=0.15, K1=-22.32; 
+QD32:         QUADRUPOLE, L=L_QD3, K1:=kL_QD32; 
 DRIFT14:      DRIFT, L=0.03;
-QD33:         QUADRUPOLE, L=0.15, K1=14.606;  
+QD33:         QUADRUPOLE, L=L_QD3, K1:=kL_QD33;  
 
 DRIFT15:      DRIFT, L=0.286; !Gap
 DRIFT16:      DRIFT, L=3.; !Photodetachment 
@@ -126,17 +125,18 @@ MONITOR6:     MONITOR;
 DRIFT19:      DRIFT, L=0.4; 
 DRIFT20:      DRIFT, L=0.053;
 
-QD41:         QUADRUPOLE, L=0.15, K1=-9.63103; 
+QD41:         QUADRUPOLE, L=L_QD4, K1:=kL_QD41; 
 DRIFT21:      DRIFT, L=0.03;
-QD42:         QUADRUPOLE, L=0.15, K1=18.3277; 
+QD42:         QUADRUPOLE, L=L_QD4, K1:=kL_QD42; 
 DRIFT22:      DRIFT, L=0.03;
-QD43:         QUADRUPOLE, L=0.15, K1=-10.0189;
+QD43:         QUADRUPOLE, L=L_QD4, K1:=kL_QD43;
 
 DRIFT23:      DRIFT, L=0.579;
 ! Außenseite des großen rechteckigen Außenflansches an der Injektionsecke
 CSRDECKEL:    MONITOR; 
 DRIFT24:      DRIFT, L=0.026;
 DRIFT25:      DRIFT, L=3.3725;
+
 !--------------------------------------------------
 !-------------- 1 SECTOR VON CSR ------------------
 !--------------------------------------------------

@@ -1,0 +1,18 @@
+! 05.April.2019
+! CS Ring file for MADX
+! taken from the original MAD8 authored by Manfred Grieser.
+
+TITLE, "CRIOGENIC STORAGE RING";
+!DELPP := 0.01*BETA; ! 2 sigma Wert von Deltap_p
+BEAM, PARTICLE=PROTON,
+      ENERGY=0.9385 + 0.0003,
+      EX=100e-6, EY=100e-6,
+      ET=100e-6, NPART=1e7;
+      
+call, file="csr.seq";
+USE,  SEQUENCE=csring;
+select, flag=twiss, column={name,s,betx,bety,alfx,alfy,mux,muy,dx,dy,dpx,dpy,x,y,px,py};
+twiss,  SEQUENCE=csring, file="CSR.twiss".;
+
+
+
