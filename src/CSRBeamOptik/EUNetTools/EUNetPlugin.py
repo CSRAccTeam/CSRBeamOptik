@@ -44,6 +44,7 @@ class EUNetManager:
         self.clientNameList = []
         self.clients        = {}
         self.clientsDevices = {}
+        self.isConnected    = False
         self.initClients()
         
     def setGlobalConfig(self):
@@ -88,7 +89,6 @@ class EUNetManager:
 
     def getValue(self, devName):
         # Looks for the client who has the device
-        print('Device Name:', devName)
         clientName = self._getClientName(devName)
         if clientName:
             return self._readDeviceInfo(devName, clientName)
@@ -101,6 +101,25 @@ class EUNetManager:
             if devName in devices: return clientName
         print('Warning: Device not found')
         return False
+        
+    def readDeviceList(self, deviceListPath):
+        data = readYamlFile(deviceListPath)
+        return data
+
+    def getDevicesInfo(self, clientName):
+        return self.clientsDevices[clientName]
+
+    def closeSession(self):
+        """
+        Terminates all the connections to the servers. 
+        """
+        for clientName in self.clientNameList:
+            client = self.clients[clientName]
+            client.close()
+
+    def setValue(self, devName, dValue):
+        # TODO: Implement set function
+        pass
 
     def _readDeviceInfo(self, devName, clientName):
         client = self.clients[clientName]
@@ -109,7 +128,7 @@ class EUNetManager:
         device  = clientDevices[devName]
         element = device['element']
         elementType = device['type']
-        # User-defined element categorization 
+        # User-defined element reading 
         if element == 'Dipole':
             devInfo = device['istWert']
         elif element == 'Quadrupole':
@@ -134,22 +153,3 @@ class EUNetManager:
         else:
             value = rawValue*device['max']
         return value
-        
-    def readDeviceList(self, deviceListPath):
-        data = readYamlFile(deviceListPath)
-        return data
-
-    def getDevicesInfo(self, clientName):
-        return self.clientsDevices[clientName]
-
-    def closeSession(self):
-        """
-        Terminates all the connections to the servers. 
-        """
-        for clientName in self.clientNameList:
-            client = self.clients[clientName]
-            client.close()
-
-    def setValue(self, devName, dValue):
-        # TODO: Implement set function
-        pass
