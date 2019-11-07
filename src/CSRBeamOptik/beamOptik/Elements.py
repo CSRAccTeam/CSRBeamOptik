@@ -1,12 +1,17 @@
 import numpy as np
 from CSRBeamOptik.beamOptik.Constants import *
 
-class Quadrupole:
+class Element:
+
+    def __init__(self, particle, lmad, leff):
+        self.particle = particle
+        self.lmad     = lmad
+        self.leff     = leff
+
+class Quadrupole(Element):
 
     def __init__(self, particle, lmad, leff, r0, corr=1):
-        self.particle   = particle
-        self.lmad       = lmad
-        self.leff       = leff
+        super().__init__(particle, lmad, leff)
         self.r0         = r0
         self.correction = corr
 
@@ -35,12 +40,10 @@ class Quadrupole:
         Uquad = (lmad * r02 * eKin * kMad) / (leff * Q * corr)
         return kMad
 
-class QuadrupoleMagnetisch:
+class QuadrupoleMagnetisch(Element):
 
     def __init__(self, particle, lmad, leff, corr=1):
-        self.particle   = particle
-        self.lmad       = lmad
-        self.leff       = leff
+        super().__init__(particle, lmad, leff)
         self.correction = corr
 
     def getkMad(self, current):
@@ -58,10 +61,10 @@ class QuadrupoleMagnetisch:
         # function of wished k Value
         return 'Not implemented'
 
-class Deflector:
+class Deflector(Element):
 
     def __init__(self, particle, radius, rIn, rOut, scalFactor):
-        self.particle   = particle
+        super().__init__(particle, 1., 1.)
         self.radius     = radius
         self.rIn        = rIn
         self.rOut       = rOut
@@ -85,13 +88,11 @@ class Deflector:
     def getBipolarValue(self, U, Umax):
         return (U + Umax)/ (2 * Umax)
 
-class BendingMagnet:
+class BendingMagnet(Element):
 
     def __init__(self, particle, lmad, leff, h):
-        self.particle = particle
-        self.lmad     = lmad
-        self.leff     = leff
-        self.bendR    = h
+        super().__init__(particle, lmad, leff)
+        self.bendR = h
 
     def getBFeldSoll(self):
         return self.particle.getSteifigkeit() / self.bendR
