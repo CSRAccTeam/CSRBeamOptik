@@ -66,6 +66,8 @@ class _CSRBeamOptik(api.Backend):
     def read_param(self, param, warn=True):
         """Read parameter. Return numeric value."""
         paramName = param
+        if paramName == 'none' or paramName == 'twiss_tol':
+            return 0.
         try:
             return self.manager.getValue(paramName)
         except RuntimeError as e:
