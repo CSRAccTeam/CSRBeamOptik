@@ -81,6 +81,8 @@ class mainWidget(QWidget):
                        quadDupletTable,
                        quadTripletTable]
 
+    # TODO: Migrate this to BeamLine Class and ensure compatibility    
+
     def initElement(self, elementName, elementKind,
                           elementType, elementSpecs):
         """
