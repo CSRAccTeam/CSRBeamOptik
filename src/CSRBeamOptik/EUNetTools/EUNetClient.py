@@ -3,24 +3,22 @@ import socket
 
 def CBSetValueDefault(iCrate, iCard, iCh, dValue):
     """
-    Defines what is to be done in case of callback,
-    for the moment we do nothing
+    User defined callback action.
+    (For the moment we do nothing)
     """
-    #print("Received SetValue: Crate: " + str(iCrate) + " Card: " + \
-    #      str(iCard) + " Channel: " + str(iCh) + " Value: " + str(dValue))
     pass
     
 def CBErrorDefault(Message):
     print("Error received: " + Message )
-    
+
 class EUNetClient:
 
     def __init__(self, IP, Port):
         """
         Created on Mon Jun 17 14:36:24 2019
-        @author: Rolf Epking
+        @author: Rolf Epking, Cris Cortes
         The EUNetClient interacts directly with the server and
-        can ask and set values
+        can get and set values
         """
         self._IP   = IP
         self._Port = Port
@@ -81,7 +79,7 @@ class EUNetClient:
             print("Error while sending SET_BITFELD: " + err.strerror)
             return False
     
-    def setCBSetValue(self,SETValueCB):
+    def setCBSetValue(self, SETValueCB):
         """ 
         Sets a CallBack-Function which will be called,
         when receiving a 'SET_WERT'
@@ -120,7 +118,7 @@ class EUNetClient:
             return (0,InputString)
         
         
-    def _checkForSet_WERT(self,InputString):
+    def _checkForSet_WERT(self, InputString):
         """
         Returns Tupel ErrNo and String
         ErrNo = -1 Parsing Error 
@@ -141,7 +139,7 @@ class EUNetClient:
         else :
             return (0, InputString)
 
-    def getValue(self,iCrate,iCard,iCh):
+    def getValue(self, iCrate, iCard, iCh):
         """
         Returns tupel of boolean and Value
         """
@@ -159,7 +157,7 @@ class EUNetClient:
                 else:
                     (errNo,Line) = self._checkForSet_WERT(Line)
                     if errNo < 0 :
-                        print (Line)
+                        print(Line)
                         return (False, 0.0)
                     elif errNo == 0:
                         tokens = Line.split(" ")
