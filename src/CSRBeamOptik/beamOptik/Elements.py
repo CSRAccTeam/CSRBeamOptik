@@ -3,27 +3,34 @@ from CSRBeamOptik.beamOptik.Constants import *
 
 class Element:
 
-    def __init__(self, particle, lmad, leff):
+    def __init__(self, madguiParamName,
+                 particle, lmad, leff):
+        self.name     = madguiParamName
         self.particle = particle
         self.lmad     = lmad
         self.leff     = leff
+        self.ui_unit  = 1.
+        self.unit     = 1.
 
 class Quadrupole(Element):
 
-    def __init__(self, particle, lmad, leff, r0, corr=1):
-        super().__init__(particle, lmad, leff)
+    def __init__(self, madguiParamName, particle,
+                 lmad, leff, r0, corr=1):
+        super().__init__(madguiParamName,
+                         particle, lmad, leff)
         self.r0         = r0
         self.correction = corr
-
-    def getkMad(self, Uquad):
+        
+    def setMadxParam(self, Uquad):
         lmad = self.lmad
         leff = self.leff
         r02  = self.r0**2
         eKin = self.particle.eKin
         Q    = self.particle.charge
         corr = self.correction
+        Uquad *= 1.e3  
         kMad = (leff * Q * corr * Uquad) / (lmad * r02 * eKin)
-        return kMad
+        self.madxParam = kMad
 
     def getkSoll(self):
         # TODO: Implement computation of k Value as
@@ -40,16 +47,19 @@ class Quadrupole(Element):
         Uquad = (lmad * r02 * eKin * kMad) / (leff * Q * corr)
         return kMad
 
+    
 class QuadrupoleMagnetisch(Element):
 
-    def __init__(self, particle, lmad, leff, corr=1):
-        super().__init__(particle, lmad, leff)
+    def __init__(self, madguiParamName, particle,
+                 lmad, leff, corr=1):
+        super().__init__(madguiParamName,
+                         particle, lmad, leff)
         self.correction = corr
 
-    def getkMad(self, current):
+    def setMadxParam(self, current):
         # TODO: Implement computation of k Value as
         # function of measured current
-        return 'Not implemented'
+        self.madxParam = 0.
 
     def getkSoll(self):
         # TODO: Implement computation of k Value as
@@ -63,8 +73,10 @@ class QuadrupoleMagnetisch(Element):
 
 class Deflector(Element):
 
-    def __init__(self, particle, radius, rIn, rOut, scalFactor):
-        super().__init__(particle, 1., 1.)
+    def __init__(self, madguiParamName, particle,
+                 radius, rIn, rOut, scalFactor):
+        super().__init__(madguiParamName,
+                         particle, 1., 1.)
         self.radius     = radius
         self.rIn        = rIn
         self.rOut       = rOut
@@ -88,10 +100,16 @@ class Deflector(Element):
     def getBipolarValue(self, U, Umax):
         return (U + Umax)/ (2 * Umax)
 
+    def setMadxParam(self, voltage):
+        # TODO: Implement computation of kick
+        self.madxParam = 0.
+
 class BendingMagnet(Element):
 
-    def __init__(self, particle, lmad, leff, h):
-        super().__init__(particle, lmad, leff)
+    def __init__(self, madguiParamName, particle,
+                 lmad, leff, h):
+        super().__init__(madguiParamName,
+                         particle, lmad, leff)
         self.bendR = h
 
     def getBFeldSoll(self):
@@ -106,3 +124,7 @@ class BendingMagnet(Element):
         # TODO: Implement current as function of BFeld
         # We need calibration curves B(I)
         pass
+
+    def setMadxParam(self, current):
+        # TODO: Implement computation of kick
+        self.madxParam = 0.
