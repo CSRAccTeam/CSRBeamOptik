@@ -12,6 +12,7 @@ class mainWidget(QWidget):
         self.particle   = particle
         self.manager    = manager
         self.clientName = 'IQ300'
+        self.BLName     = self.clientName
         self.deviceList = self.manager.getDevicesInfo(self.clientName)
         self.titles     = self.initTableTitles()
         self.tables     = []
