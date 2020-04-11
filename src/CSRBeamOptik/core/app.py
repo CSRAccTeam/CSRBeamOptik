@@ -45,7 +45,6 @@ def initIonBeam():
     ionDataKeys = ionConfig['ionDataKeys']
     ionData = requests.get(ionDataURL)
     ionData = ionData.text
-    print(ionData)
     ionData = _readIonData(ionData)
 
     eKin = ionData['EkinIon']

@@ -58,7 +58,7 @@ class mainWindow(QMainWindow):
             elif 'Triplet' in elGroup:
                 quadTripletInfo.append([elName, readValue, madxParam])
 
-        self.fillTable(dipolesInfo, 'dipoleTable')
+        self.fillTable(dipolesInfo,    'dipoleTable')
         self.fillTable(quadDupletInfo, 'magneticQuadsTable')
         self.fillTable(quadTripletInfo, 'electricQuadsTable')
 
@@ -82,9 +82,9 @@ class mainWindow(QMainWindow):
                 enableItem = self.getQTableWidgetItemFlags()
                 tableItem.setFlags(enableItem)
 
-        header = newTable.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(QHeaderView.Stretch)
+        headerH = newTable.horizontalHeader()
+        headerH.setSectionResizeMode(QHeaderView.ResizeToContents)
+        headerH.setSectionResizeMode(QHeaderView.Stretch)
         headerV = newTable.verticalHeader()
         headerV.setSectionResizeMode(QHeaderView.Stretch)
 
