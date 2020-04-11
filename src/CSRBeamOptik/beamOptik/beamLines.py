@@ -8,38 +8,29 @@ from CSRBeamOptik.beamOptik.Elements import (Quadrupole,
 class BeamLine:
 
     def __init__(self, bLName, particle, EUNetManager):
-        """
-        Here we construct the list for MADX to read.
-        BeamLineName must be the same as EUClientName to get 
-        the device list
-        """
         self.bLName     = bLName
         self.particle   = particle
         self.manager    = EUNetManager
         self.elements   = {}
-        self.bLElements = self.getLineElements()
+        self.setLineElements()
 
-    def getLineElements(self):
+    def setLineElements(self):
         elementsInfo = self.manager.getDevicesInfo(self.bLName)
         for element in elementsInfo:
             el = self._buildElement(element, elementsInfo[element])
-        
-    def setBeamLine(self):
-        beamLine   = {}
-        madxParams = {}
-        for element in self.bLElements:
-            madxParam = element['madxParam']
-            
+            elementsInfo[element].update({'beamOptikElement':el})
+            self.elements.update({element:elementsInfo[element]})
+
     def _buildElement(self, elName, element):
-        
+
         elClass = element['element']
         elType  = element['type']
         elGroup = element['group']
         elSpecs = element['specs']
         madxName  = element['madxName']
         madxParam = element['madxParam']
-        
-        if (elClass == 'Dipole' and elType == 'magnetisch'):
+
+        if (elClass == 'Dipole'):
             bendRadius = elSpecs['h']
             angle = elSpecs['angle']
             lmad  = bendRadius * angle * (np.pi / 180.)
@@ -59,11 +50,10 @@ class BeamLine:
                 corr   = elSpecs['correction']
                 newElement = Quadrupole(madxParam, self.particle,
                                         lmad, leff, radius, corr)
-        newElement.setMadxParam(self.manager.getValue(elName))
-        self.elements.update({elName : newElement})
+        newElement.setReadValue(self.manager.getValue(elName))
+        return newElement
 
-    def showBeamElements(self):
-
-        for el in self.elements:
-            print(el)
-            print(self.elements[el])
+    def updateElementReads(self):
+         for elName in self.elements:
+             e = self.elements[elName]
+             e['beamOptikElement'].setReadValue(self.manager.getValue(elName))

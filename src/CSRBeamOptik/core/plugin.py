@@ -27,12 +27,12 @@ class _CSRBeamOptik(api.Backend):
          self.particle  = self._getBeam()
          # For now we try just the IQ300
          self.beamLine  = BeamLine('IQ300', self.particle, self.manager)
-         
+
     # Backend API
 
     def connect(self):
         """Connect to online database (must be loaded)."""
-        isConnected  = self.manager.isConnected 
+        isConnected  = self.manager.isConnected
         self.connected.set(isConnected)
 
     def disconnect(self):
@@ -52,14 +52,14 @@ class _CSRBeamOptik(api.Backend):
         blElements  = self.beamLine.elements
         try:
             for blElement in blElements:
-                element = blElements[blElement]
-                if element.name == paramName:
-                    return element
+                elementInfo = blElements[blElement]
+                if elementInfo['madxParam'] == paramName:
+                    return elementInfo['beamOptikElement']
         except RuntimeError as e:
             if warn:
                 logging.warning("{} for {!r}".format(e, param))
 
-        
+
     def read_monitor(self, name):
         """
         Read out one monitor, return values as dict with keys
@@ -71,7 +71,7 @@ class _CSRBeamOptik(api.Backend):
         """Read all specified params (by default all). Return dict."""
         if param_names is None and self.connected:
             return {}
-            
+
         return {
             param: value
             for param in param_names
@@ -83,12 +83,13 @@ class _CSRBeamOptik(api.Backend):
         """Read parameter. Return numeric value."""
         paramName   = param
         blElements  = self.beamLine.elements
+        self.beamLine.updateElementReads()
         try:
             for blElement in blElements:
-                element = blElements[blElement]
-                if element.name == paramName:
-                    return element.madxParam
-                
+                elementInfo = blElements[blElement]
+                if elementInfo['madxParam'] == paramName:
+                    return elementInfo['beamOptikElement'].madxParam
+
         except RuntimeError as e:
             if warn:
                 logging.warning("{} for {!r}".format(e, param))
@@ -99,13 +100,13 @@ class _CSRBeamOptik(api.Backend):
 
     def get_beam(self):
         return self._getBeam()
-    
+
     def _getBeam(self):
          """
-         Loads the data from the web server. Note that the ion 
+         Loads the data from the web server. Note that the ion
          might not match with the ongoing experiment.
          """
-         ionConfig   = readYamlFile('/home/blm/ccortes/MPIK/CSR/CSRBeamOptik' + \
+         ionConfig   = readYamlFile('/home/cristopher/MPIK/CSRBeamOptik' + \
                                     '/configFiles/ionDict.yaml')
          ionDataURL  = ionConfig['ionDataURL']
          ionDataKeys = ionConfig['ionDataKeys']
@@ -113,17 +114,12 @@ class _CSRBeamOptik(api.Backend):
          ionData = ionData.text
          logging.info('{}'.format(ionData))
          ionData = self._readIonData(ionData)
-    
-         eKin = ionData['EkinIon']
-         eKin = 161
-         Q    = ionData['LadungIon']
-         Q    = -1
-         mass = ionData['MasseIon']
-         mass = 6.
-         ion  = ChargedParticle(eKin, Q, mass)
 
-         #TODO: Implement user input definition of beam 
-     
+         eKin = ionData['EkinIon']
+         Q    = ionData['LadungIon']
+         mass = ionData['MasseIon']
+         ion  = ChargedParticle(eKin, Q, mass)
+         #TODO: Implement user input definition of beam
          return ion
 
     def _readIonData(self, ionData):
@@ -139,4 +135,3 @@ class CSR_ACS(_CSRBeamOptik):
     def __init__(self, session, settings):
         """Connect to online database."""
         super().__init__(session, settings)
-

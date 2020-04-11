@@ -11,6 +11,8 @@ class Element:
         self.leff     = leff
         self.ui_unit  = 1.
         self.unit     = 1.
+        self.readValue = 0.
+        self.madxParam = 0.
 
 class Quadrupole(Element):
 
@@ -20,7 +22,11 @@ class Quadrupole(Element):
                          particle, lmad, leff)
         self.r0         = r0
         self.correction = corr
-        
+
+    def setReadValue(self, Uquad):
+        self.readValue = Uquad
+        self.setMadxParam(Uquad)
+
     def setMadxParam(self, Uquad):
         lmad = self.lmad
         leff = self.leff
@@ -28,9 +34,13 @@ class Quadrupole(Element):
         eKin = self.particle.eKin
         Q    = self.particle.charge
         corr = self.correction
-        Uquad *= 1.e3  
+        #Uquad *= 1.e3
         kMad = (leff * Q * corr * Uquad) / (lmad * r02 * eKin)
         self.madxParam = kMad
+
+    def getkMad(self, Uquad):
+        self.setMadxParam(Uquad)
+        return self.madxParam
 
     def getkSoll(self):
         # TODO: Implement computation of k Value as
@@ -45,9 +55,9 @@ class Quadrupole(Element):
         Q     = self.particle.charge
         corr  = self.correction
         Uquad = (lmad * r02 * eKin * kMad) / (leff * Q * corr)
-        return kMad
+        return Uquad
 
-    
+
 class QuadrupoleMagnetisch(Element):
 
     def __init__(self, madguiParamName, particle,
@@ -55,6 +65,10 @@ class QuadrupoleMagnetisch(Element):
         super().__init__(madguiParamName,
                          particle, lmad, leff)
         self.correction = corr
+
+    def setReadValue(self, current):
+        self.readValue = current
+        self.setMadxParam(current)
 
     def setMadxParam(self, current):
         # TODO: Implement computation of k Value as
@@ -82,7 +96,7 @@ class Deflector(Element):
         self.rOut       = rOut
         self.scalFactor = scalFactor
         self.setVoltages()
-        
+
     def getVoltage(self, rInOut):
         e0         = elementaryCharge()
         eKin       = self.particle.eKin
@@ -112,6 +126,10 @@ class BendingMagnet(Element):
                          particle, lmad, leff)
         self.bendR = h
 
+    def setReadValue(self, current):
+        self.readValue = current
+        self.setMadxParam(current)
+
     def getBFeldSoll(self):
         return self.particle.getSteifigkeit() / self.bendR
 
@@ -119,7 +137,7 @@ class BendingMagnet(Element):
         # TODO: Implement BFeld as function of the current
         # We need calibration curves B(I)
         return 'Not implemented'
-    
+
     def getCurrent(self, BFeld):
         # TODO: Implement current as function of BFeld
         # We need calibration curves B(I)

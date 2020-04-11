@@ -12,12 +12,13 @@ class mainWidget(QWidget):
         self.particle   = particle
         self.manager    = manager
         self.clientName = 'IQ300'
+        self.BLName     = self.clientName
         self.deviceList = self.manager.getDevicesInfo(self.clientName)
         self.titles     = self.initTableTitles()
         self.tables     = []
         self.elements   = {}
         self.initUI()
-        
+
     def initUI(self):
         mainGrid = QGridLayout()
         self.initElementTables()
@@ -26,13 +27,13 @@ class mainWidget(QWidget):
         for i in range(3):
             mainGrid.addWidget(self.titles[i], 2*i,   0)
             mainGrid.addWidget(self.tables[i], 2*i+1, 0)#, 1, 2)
-        
+
     def initTableTitles(self):
         dipolesTitle     = self.createTableTitle('DIPOLES')
         quadDupletTitle  = self.createTableTitle('QUADRUPOLE DUPLETS')
         quadTripletTitle = self.createTableTitle('QUADRUPOLE TRIPLETS')
         return [dipolesTitle, quadDupletTitle, quadTripletTitle]
-        
+
     def initElementTables(self):
         dipolesInfo     = [['Name', 'Current [A]',  'B_ist [mT]', 'B_soll [mT]']]
         quadDupletInfo  = [['Name', 'Current [A]',  'K_ist [m^-2]', 'K_soll [m^-2]']]
@@ -68,7 +69,7 @@ class mainWidget(QWidget):
             elif 'Triplet' in elGroup:
                 quadTripletInfo.append([devName, readValue,
                                         elOpticsIst, elOpticsSoll])
-                
+
         dipoleTable      = self.createTable(dipolesInfo)
         quadDupletTable  = self.createTable(quadDupletInfo)
         quadTripletTable = self.createTable(quadTripletInfo)
@@ -81,16 +82,16 @@ class mainWidget(QWidget):
                        quadDupletTable,
                        quadTripletTable]
 
-    # TODO: Migrate this to BeamLine Class and ensure compatibility    
+    # TODO: Migrate this to BeamLine Class and ensure compatibility
 
-    def initElement(self, elementName, elementKind,
+    def initElement(self, elName, elementKind,
                           elementType, elementSpecs):
         """
         @param elementName is the tag of the element
         @param elementKind is the kind of element e.g. Quadrupole, BendingMagnet, etc
         @param elementType is the type of element e.g. electrostatic or magnetic
         @param readValue   is the read value from the server
-        @param elemtSpecs  are the element specifications needed to initialize 
+        @param elemtSpecs  are the element specifications needed to initialize
                            the element
         """
         from CSRBeamOptik.beamOptik.Elements import (Quadrupole,
@@ -104,18 +105,20 @@ class mainWidget(QWidget):
             lmad  = bendRadius * angle * (np.pi / 180.)
             # Effective length of magnetic bending dipoles has not yet been
             # measured, or no data is available
-            newElement = BendingMagnet(particle, lmad, lmad, bendRadius)
+            newElement = BendingMagnet(elName, particle,
+                                       lmad, lmad, bendRadius)
         elif (elementKind == 'Quadrupole') or (elementKind == 'Quadrupole_kicker'):
             if elementType == 'magnetisch':
                 lmad = elementSpecs['length']
-                newElement = QuadrupoleMagnetisch(particle, lmad, lmad)
+                newElement = QuadrupoleMagnetisch(elName, particle, lmad, lmad)
             elif elementType == 'elektrostatisch':
                 lmad   = elementSpecs['lmad']
                 leff   = elementSpecs['leff']
                 radius = elementSpecs['radius']
                 corr   = elementSpecs['correction']
-                newElement = Quadrupole(particle, lmad, leff, radius, corr)
-        self.elements.update({elementName : newElement})
+                newElement = Quadrupole(elName, particle,
+                                        lmad, leff, radius, corr)
+        self.elements.update({elName : newElement})
 
     def getElementOptics(self, element, elementKind, elementType, readValue):
         if (elementKind == 'Dipole' and elementType == 'magnetisch'):
@@ -126,8 +129,8 @@ class mainWidget(QWidget):
         elif (elementKind == 'Quadrupole') or (elementKind == 'Quadrupole_kicker'):
             if elementType == 'magnetisch':
                 current = readValue
-                k_ist  = element.getkMad(current)
-                k_soll = element.getkSoll()
+                k_ist  = 0.#element.getkMad(current)
+                k_soll = 0.#element.getkSoll()
                 return [k_ist, k_soll]
             elif elementType == 'elektrostatisch':
                 voltage = readValue*1e3
@@ -144,7 +147,7 @@ class mainWidget(QWidget):
         label.setFont(titleFont)
         label.setAlignment(QtCore.Qt.AlignCenter)
         return label
-    
+
     def createTable(self, table):
         rows    = len(table)
         columns = len(table[0])
@@ -153,7 +156,7 @@ class mainWidget(QWidget):
         newTable.verticalHeader().hide()
         newTable.setRowCount(rows-1)
         newTable.setColumnCount(columns)
-       
+
         for i in range(columns):
             titleItem = QTableWidgetItem('{}'.format(table[0][i]))
             newTable.setHorizontalHeaderItem(i, titleItem)
@@ -197,7 +200,7 @@ class mainWidget(QWidget):
                 devReadItem.setText('{}'.format(readValue))
                 devIstVal.setText('{}'.format(elOpticsIst))
                 devSollVal.setText('{}'.format(elOpticsSoll))
-                
+
     def getQTableWidgetItemFlags(self):
         """
         Just for documentation of how to make editable the table Items
