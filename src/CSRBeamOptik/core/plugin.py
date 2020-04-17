@@ -112,7 +112,8 @@ class _CSRBeamOptik(api.Backend):
          ionDataKeys = ionConfig['ionDataKeys']
          ionData = requests.get(ionDataURL)
          ionData = ionData.text
-         logging.info('{}'.format(ionData))
+         logging.info('Loading beam from online data')
+         #logging.info('{}'.format(ionData))
          ionData = self._readIonData(ionData)
 
          eKin = ionData['EkinIon']

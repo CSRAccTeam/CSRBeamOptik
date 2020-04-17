@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (QTableWidgetItem, QWidget, QGridLayout, QFormLayout
 from PyQt5 import QtGui, QtCore
 from madgui.util.qt import load_ui
 from CSRBeamOptik.beamOptik.beamLines import BeamLine
+from CSRBeamOptik.beamOptik.IonBeam import IonBeam
 
 import numpy as np
 
@@ -19,6 +20,7 @@ class mainWindow(QMainWindow):
 
         super().__init__()
         load_ui(self, __package__, self.ui_file)
+        self.ionBeam  = IonBeam(particle)
         self.bLName   = 'IQ300'
         self.beamLine = BeamLine(self.bLName, particle, EUNetManager)
         self.elements = self.beamLine.elements
@@ -28,6 +30,7 @@ class mainWindow(QMainWindow):
 
     def initUI(self):
         self.initTables()
+        self.initBeamWidgets()
         self.setWindowTitle('CSR Beam Optik')
 
     def refreshCycle(self):
@@ -37,6 +40,41 @@ class mainWindow(QMainWindow):
         self.timer.start()
 
     def stopRefreshCycle(self): self.timer.stop()
+
+    def initBeamWidgets(self):
+        self.beamTable  = self.findChild(QTableWidget, 'beamTable')
+        beamInfo   = [['Beam', 'Value', 'Unit']]
+        beamDict = self.ionBeam.getBeamInfo()
+
+        for atr in beamDict:
+            beamInfo.append([atr,
+                             beamDict[atr]['Value'],
+                             beamDict[atr]['Unit']])
+
+        self.fillBeamTable(beamInfo,'beamTable')
+
+        beamButton = self.findChild(QPushButton,'beamButton')
+        beamButton.clicked.connect(self._on_clicked_beamButton)
+
+    def _on_clicked_beamButton(self):
+        print('You clicked it ;)')
+
+        rows = self.beamTable.rowCount()
+        newVals = {}
+        for i in range(rows):
+            atrName = self.beamTable.item(i, 0)
+            name = atrName.text()
+            atrVal  = self.beamTable.item(i, 1)
+            value   = atrVal.text()
+            newVals.update({name:float(value)})
+
+        particle = self.ionBeam.particle.__dict__
+        for i in particle: print(i, particle[i])
+        self.ionBeam.particle.resetParticle(newVals['Ekin'],
+                                            newVals['Charge'],
+                                            newVals['Mass'])
+        for i in particle: print(i, particle[i])
+
 
     def initTables(self):
 
@@ -90,6 +128,33 @@ class mainWindow(QMainWindow):
 
         self.tables.append(newTable)
 
+    def fillBeamTable(self, table, tableName):
+        newTable = self.findChild(QTableWidget, tableName)
+        rows     = len(table)
+        columns  = len(table[0])
+        newTable.setFont(QtGui.QFont('Arial', 12))
+        newTable.verticalHeader().hide()
+        newTable.setRowCount(rows-1)
+        newTable.setColumnCount(columns)
+        for i in range(columns):
+            titleItem = QTableWidgetItem('{}'.format(table[0][i]))
+            newTable.setHorizontalHeaderItem(i, titleItem)
+
+        for i in range(rows-1):
+            for j in range(columns):
+                tableItem = QTableWidgetItem('{}'.format(table[i+1][j]))
+                tableItem.setTextAlignment(QtCore.Qt.AlignCenter)
+                newTable.setItem(i, j, tableItem)
+                if j != 1:
+                    enableItem = self.getQTableWidgetItemFlags()
+                    tableItem.setFlags(enableItem)
+
+        headerH = newTable.horizontalHeader()
+        headerH.setSectionResizeMode(QHeaderView.ResizeToContents)
+        headerH.setSectionResizeMode(QHeaderView.Stretch)
+        headerV = newTable.verticalHeader()
+        headerV.setSectionResizeMode(QHeaderView.Stretch)
+
     def refreshTable(self):
         self.beamLine.updateElementReads()
         for table in self.tables:
@@ -115,3 +180,9 @@ class mainWindow(QMainWindow):
         enabled    = QtCore.Qt.ItemIsEnabled
         editable   = QtCore.Qt.ItemIsEditable
         return enabled
+
+    def getQEditableItem(self):
+        selectable = QtCore.Qt.ItemIsSelectable
+        enabled    = QtCore.Qt.ItemIsEnabled
+        editable   = QtCore.Qt.ItemIsEditable
+        return selectable, enabled, editable
