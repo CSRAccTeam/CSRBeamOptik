@@ -27,6 +27,7 @@ class _CSRBeamOptik(api.Backend):
          self.particle  = self._getBeam()
          # For now we try just the IQ300
          self.beamLine  = BeamLine('IQ300', self.particle, self.manager)
+         self.backendKnobs = self.getBackendKnobs()
 
     # Backend API
 
@@ -44,21 +45,26 @@ class _CSRBeamOptik(api.Backend):
 
     def execute(self):
         """Execute changes (commits prior set_value operations)."""
-        raise NotImplementedError
+        pass
+
+    def getBackendKnobs(self):
+        elements = self.beamLine.elements
+        blElems  = [elements[e] for e in elements]
+        backendKnobs = {e['madxParam']:e['beamOptikElement']
+                        for e in blElems}
+        return backendKnobs
 
     def param_info(self, knob):
         """Get parameter info for backend key."""
-        paramName   = knob
-        blElements  = self.beamLine.elements
         try:
-            for blElement in blElements:
-                elementInfo = blElements[blElement]
-                if elementInfo['madxParam'] == paramName:
-                    return elementInfo['beamOptikElement']
+            return self.backendKnobs[knob]
+        except KeyError as e:
+            # Madgui asks for the globals in MADX which are not
+            # always element attributes
+            return
         except RuntimeError as e:
             if warn:
                 logging.warning("{} for {!r}".format(e, param))
-
 
     def read_monitor(self, name):
         """
@@ -81,54 +87,49 @@ class _CSRBeamOptik(api.Backend):
 
     def read_param(self, param, warn=True):
         """Read parameter. Return numeric value."""
-        paramName   = param
-        blElements  = self.beamLine.elements
-        self.beamLine.updateElementReads()
         try:
-            for blElement in blElements:
-                elementInfo = blElements[blElement]
-                if elementInfo['madxParam'] == paramName:
-                    return elementInfo['beamOptikElement'].madxParam
-
+            element = self.backendKnobs[param]
+            return element.madxParam
+        except KeyError as e:
+            # Madgui asks for the globals in MADX which are not
+            # always element attributes
+            return
         except RuntimeError as e:
             if warn:
                 logging.warning("{} for {!r}".format(e, param))
 
     def write_param(self, param, value):
         """Update parameter into control system."""
-        pass
+        logging.info('{} -> {}'.format(param, value))
 
     def get_beam(self):
         return self._getBeam()
 
     def _getBeam(self):
-         """
-         Loads the data from the web server. Note that the ion
-         might not match with the ongoing experiment.
-         """
-         ionConfig   = readYamlFile('/home/cristopher/MPIK/CSRBeamOptik' + \
-                                    '/configFiles/ionDict.yaml')
-         ionDataURL  = ionConfig['ionDataURL']
-         ionDataKeys = ionConfig['ionDataKeys']
-         ionData = requests.get(ionDataURL)
-         ionData = ionData.text
-         logging.info('Loading beam from online data')
-         #logging.info('{}'.format(ionData))
-         ionData = self._readIonData(ionData)
-
-         eKin = ionData['EkinIon']
-         Q    = ionData['LadungIon']
-         mass = ionData['MasseIon']
-         ion  = ChargedParticle(eKin, Q, mass)
-         #TODO: Implement user input definition of beam
-         return ion
+        """
+        Loads the data from the web server. Note that the ion
+        might not match with the ongoing experiment.
+        """
+        configFile  = '/home/cristopher/MPIK/CSRBeamOptik/configFiles/ionDict.yaml'
+        ionConfig   = readYamlFile(configFile)
+        ionDataURL  = ionConfig['ionDataURL']
+        ionDataKeys = ionConfig['ionDataKeys']
+        ionData = requests.get(ionDataURL)
+        ionData = ionData.text
+        logging.info('Loading beam from online data')
+        ionData = self._readIonData(ionData)
+        #logging.info('{}'.format(ionData))
+        eKin = ionData['EkinIon']
+        Q    = ionData['LadungIon']
+        mass = ionData['MasseIon']
+        ion  = ChargedParticle(eKin, Q, mass)
+        #TODO: Implement user input definition of beam
+        return ion
 
     def _readIonData(self, ionData):
         lines = ionData.split('\n')
-        ionData = {}
-        for line in lines:
-            data = line.split('=')
-            if (len(data) == 2.): ionData.update({data[0] : float(data[1])})
+        lines = [line.split('=') for line in lines if len(line.split('='))==2]
+        ionData = {l[0]:float(l[1]) for l in lines}
         return ionData
 
 class CSR_ACS(_CSRBeamOptik):

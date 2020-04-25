@@ -30,6 +30,10 @@ class BeamLine:
         madxName  = element['madxName']
         madxParam = element['madxParam']
 
+        isQuad = ((elClass == 'Quadrupole') or
+                  (elClass == 'Quadrupole_kicker') or
+                  (elClass == 'Quadrupole_elektro'))
+
         if (elClass == 'Dipole'):
             bendRadius = elSpecs['h']
             angle = elSpecs['angle']
@@ -38,7 +42,7 @@ class BeamLine:
             # measured, or no data is available
             newElement = BendingMagnet(madxParam, self.particle,
                                        lmad, lmad, bendRadius)
-        elif (elClass == 'Quadrupole') or (elClass == 'Quadrupole_kicker'):
+        elif isQuad:
             if elType == 'magnetisch':
                 lmad = elSpecs['length']
                 newElement = QuadrupoleMagnetisch(madxParam, self.particle,

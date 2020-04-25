@@ -68,6 +68,7 @@ class EUNetManager:
             raise Exception('Device not found')
 
     def _getClientName(self, devName):
+        # TODO: Implement in a more cleaner way
         for clientName in self.clientNameList:
             devices = self.clientsDevices[clientName]
             if devName in devices: return clientName
@@ -89,36 +90,15 @@ class EUNetManager:
             client = self.clients[clientName]
             client.close()
 
-    def setValue(self, devName, dValue):
-        # TODO: Implement set function
-        clientName = self._getClientName(devName)
-
-        client = self.clients[clientName]
-        clientDevices = self.clientsDevices[clientName]
-        device  = clientDevices[devName]
-        element = device['element']
-        elementType = device['type']
-
-        if element == 'Deflektor':
-            devInfo = device['sollWert']
-
-            crate   = devInfo['crate']
-            card    = devInfo['card']
-            channel = devInfo['channel']
-
-            client.setValue(crate, card, channel, dValue)
-
-        else:
-            pass
-
     def _readDeviceValue(self, devName, clientName):
         """
         Returns the device physical value. Takes into consideration
         if the channel is bipolar and its defined, max&min value.
         """
-        clientDevices = self.clientsDevices[clientName]
-        device  = clientDevices[devName]
-        rawValue = self._readRawValue(devName, clientName)
+        clientDevs = self.clientsDevices[clientName]
+        device     = clientDevs[devName]
+        rawValue   = self._readRawValue(devName, clientName)
+
         if device['min'] < 0. :
             value = rawValue - 0.5
             value = 2*value*device['max']
@@ -126,38 +106,30 @@ class EUNetManager:
             value = rawValue*device['max']
         return value
 
+    specialElements = ['Quadrupole_elektro','Quadrupole_kicker']
+
     def _readRawValue(self, devName, clientName):
         """
         Returns the channel raw value from 0.0 to 1.0
         """
-        client = self.clients[clientName]
-        clientDevices = self.clientsDevices[clientName]
-        device  = clientDevices[devName]
-        element = device['element']
+        client     = self.clients[clientName]
+        clientDevs = self.clientsDevices[clientName]
+        device     = clientDevs[devName]
+        element    = device['element']
         elementType = device['type']
+
+        isNotSpecial = not (element in self.specialElements)
         # User-defined element reading
-        if element == 'Dipole':
-            devInfo = device['istWert']
-        elif element == 'Quadrupole':
-            if elementType == 'magnetisch':
-                devInfo = device['istWert']
-            elif elementType == 'elektroCSR':
+        try:
+            if isNotSpecial:
                 devInfo = device['istWert']
             else:
                 devInfo = device['horizontal']
                 devInfo = devInfo['istWert']
-        elif element == 'Quadrupole_kicker':
-            devInfo = device['horizontal']
-            devInfo = devInfo['istWert1']
-        elif element == 'Deflektor':
-            if elementType == 'elektrostatisch':
-                devInfo = device['istWert']
-            elif elementType == 'elektrostatisch_kicker':
-                devInfo = device['innen']
-                devInfo = devInfo['istWert']
-        elif element == 'Steerer':
-            devInfo = device['istWert']
-        else:
+        except KeyError:
+            print(element)
+            print(elementType)
+        except RuntimeError:
             print(element)
             print(elementType)
             raise Exception('Element not yet implemented')
@@ -165,16 +137,37 @@ class EUNetManager:
         crate   = devInfo['crate']
         card    = devInfo['card']
         channel = devInfo['channel']
+        wasRead, rawValue = client.getValue(crate, card, channel)
 
-        client = self.clients[clientName]
-        clientDevices = self.clientsDevices[clientName]
-        device  = clientDevices[devName]
-        crate   = devInfo['crate']
-        card    = devInfo['card']
-        channel = devInfo['channel']
-        read, rawValue = client.getValue(crate, card, channel)
-        return rawValue
+        if wasRead:
+            return rawValue
 
+        return
+
+    def setValue(self, devName, dValue):
+        # TODO: Implement set function
+        clientName = self._getClientName(devName)
+        client     = self.clients[clientName]
+        clientDevs = self.clientsDevices[clientName]
+
+        device  = clientDevs[devName]
+        element = device['element']
+
+        isNotSpecial = not (element in self.specialElements)
+
+        if isNotSpecial:
+            devInfo = device['sollWert']
+            crate   = devInfo['crate']
+            card    = devInfo['card']
+            channel = devInfo['channel']
+
+            client.setValue(crate, card, channel, dValue)
+        # Sadly this must be done by hand
+        else:
+            self.setSpecialValue(client, device, dValue)
+
+    def setSpecialValue(self, client, device, dValue):
+        pass
 
 class EUNetPlugin(EUNetManager):
 
@@ -196,15 +189,13 @@ class EUNetPlugin(EUNetManager):
 
     def getDeviceList(self):
         """
-        Returns a list with ALL devices name.
+        Returns a list with ALL device names.
         Should we also build in a getter
         with the available input devices?
         or the output devices? or both?
         """
-        allDevices = []
-        for c in self.clients:
-            for devName in self.clientsDevices[c]:
-                allDevices.append(devName)
-        return allDevices
+        return [devName
+                for devName in self.clientsDevices[c]
+                for c in self.clients]
 
     def close(self): self.closeSession()
