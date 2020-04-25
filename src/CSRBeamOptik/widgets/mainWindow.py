@@ -57,7 +57,6 @@ class mainWindow(QMainWindow):
         beamButton.clicked.connect(self._on_clicked_beamButton)
 
     def _on_clicked_beamButton(self):
-        print('You clicked it ;)')
 
         rows = self.beamTable.rowCount()
         newVals = {}
@@ -88,6 +87,11 @@ class mainWindow(QMainWindow):
             opticalElement  = devInfo['beamOptikElement']
             readValue = round(opticalElement.readValue, 3)
             madxParam = round(opticalElement.madxParam, 4)
+
+            if (readValue == -9999. or
+                madxParam == -9999.) :
+                readValue = '-'
+                madxParam = '-'
 
             if 'Dipoles' in elGroup:
                 dipolesInfo.append([elName, readValue, madxParam])
@@ -167,6 +171,12 @@ class mainWindow(QMainWindow):
                 element = devInfo['beamOptikElement']
                 readValue = round(element.readValue, 3)
                 madxParam = round(element.madxParam, 4)
+
+                if (readValue == -9999. or
+                madxParam == -9999.) :
+                    readValue = '-'
+                    madxParam = '-'
+
                 devReadItem = table.item(i, 1)
                 devIstVal   = table.item(i, 2)
                 devReadItem.setText('{}'.format(readValue))
