@@ -167,7 +167,44 @@ class EUNetManager:
             self.setSpecialValue(client, device, dValue)
 
     def setSpecialValue(self, client, device, dValue):
-        pass
+
+        elem = device['element']
+        unit = device['unit']
+        minVal = device['min']
+        maxVal = device['max']
+
+        if unit == 'kV':
+            dValue /= 1e3
+
+        if elem == 'Quadrupole_elektro':
+            info   = device['horizontal']
+            setHor = info['sollWert']
+            crate  = setHor['crate']
+            card   = setHor['card']
+            channel = setHor['channel']
+            rawValue = self.computeRawValue(minVal, maxVal, dValue)
+            #client.setValue(crate, card, channel, dValue)
+            print('Set horizontal value: {} kV -> {}'.format(round(dValue,3),
+                                                             rawValue))
+
+            info    = device['vertical']
+            setVer  = info['sollWert']
+            crate   = setVer['crate']
+            card    = setVer['card']
+            channel = setVer['channel']
+            rawValue = self.computeRawValue(minVal, maxVal, -dValue)
+            #client.setValue(crate, card, channel, dValue)
+            print('Set vertical value: {} kV -> {}'.format(round(-dValue,3),
+                                                           rawValue))
+
+
+    def computeRawValue(self, minVal, maxVal, dVal):
+        if minVal < 0.:
+            rawVal = dVal/(2*maxVal) + 0.5
+        else:
+            rawVal = dVal/(2*maxVal)
+        return rawVal
+
 
 class EUNetPlugin(EUNetManager):
 

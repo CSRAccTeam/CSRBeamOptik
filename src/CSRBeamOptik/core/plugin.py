@@ -100,7 +100,10 @@ class _CSRBeamOptik(api.Backend):
 
     def write_param(self, param, value):
         """Update parameter into control system."""
-        logging.info('{} -> {}'.format(param, value))
+        if 'getUquad' in dir(self.backendKnobs[param]):
+            element = self.backendKnobs[param]
+            value   = element.getUquad(value)
+            self.manager.setValue(element.EUNetName, value)
 
     def get_beam(self):
         return self._getBeam()

@@ -41,23 +41,24 @@ class BeamLine:
             # Effective length of magnetic bending dipoles has not yet been
             # measured, or no data is available
             newElement = BendingMagnet(madxParam, self.particle,
-                                       lmad, lmad, bendRadius)
+                                       lmad, lmad, elName, bendRadius)
         elif isQuad:
             if elType == 'magnetisch':
                 lmad = elSpecs['length']
                 newElement = QuadrupoleMagnetisch(madxParam, self.particle,
-                                                  lmad, lmad)
+                                                  lmad, lmad, elName)
             elif elType == 'elektrostatisch':
                 lmad   = elSpecs['lmad']
                 leff   = elSpecs['leff']
                 radius = elSpecs['radius']
                 corr   = elSpecs['correction']
                 newElement = Quadrupole(madxParam, self.particle,
-                                        lmad, leff, radius, corr)
+                                        lmad, leff, elName, radius, corr)
         newElement.setReadValue(self.manager.getValue(elName))
         return newElement
 
     def updateElementReads(self):
-         for elName in self.elements:
-             e = self.elements[elName]
-             e['beamOptikElement'].setReadValue(self.manager.getValue(elName))
+        manager = self.manager
+        for elName in self.elements:
+            e = self.elements[elName]
+            e['beamOptikElement'].setReadValue(manager.getValue(elName))

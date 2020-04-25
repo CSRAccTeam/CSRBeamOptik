@@ -4,7 +4,8 @@ from CSRBeamOptik.beamOptik.Constants import *
 class Element:
 
     def __init__(self, madguiParamName,
-                 particle, lmad, leff):
+                 particle, lmad, leff,
+                 EUNetName):
         self.name     = madguiParamName
         self.particle = particle
         self.lmad     = lmad
@@ -13,13 +14,14 @@ class Element:
         self.unit     = 1.
         self.readValue = 0.
         self.madxParam = 0.
+        self.EUNetName = EUNetName
 
 class Quadrupole(Element):
 
     def __init__(self, madguiParamName, particle,
-                 lmad, leff, r0, corr=1):
+                 lmad, leff, EUNetName, r0, corr=1):
         super().__init__(madguiParamName,
-                         particle, lmad, leff)
+                         particle, lmad, leff, EUNetName)
         self.r0         = r0
         self.correction = corr
 
@@ -45,7 +47,7 @@ class Quadrupole(Element):
     def getkSoll(self):
         # TODO: Implement computation of k Value as
         # function of working point Q
-        return 'Not implemented'
+        raise NotImplementedError
 
     def getUquad(self, kMad):
         lmad  = self.lmad
@@ -61,9 +63,9 @@ class Quadrupole(Element):
 class QuadrupoleMagnetisch(Element):
 
     def __init__(self, madguiParamName, particle,
-                 lmad, leff, corr=1):
+                 lmad, leff, EUNetName, corr=1):
         super().__init__(madguiParamName,
-                         particle, lmad, leff)
+                         particle, lmad, leff, EUNetName)
         self.correction = corr
 
     def setReadValue(self, current):
@@ -73,24 +75,24 @@ class QuadrupoleMagnetisch(Element):
     def setMadxParam(self, current):
         # TODO: Implement computation of k Value as
         # function of measured current
-        self.madxParam = 0.
+        self.madxParam = -9999.
 
     def getkSoll(self):
         # TODO: Implement computation of k Value as
         # function of working point Q
-        return 'Not implemented'
+        raise NotImplementedError
 
     def getCurrent(self, kMad):
         # TODO: Implement computation of current as
         # function of wished k Value
-        return 'Not implemented'
+        raise NotImplementedError
 
 class Deflector(Element):
 
     def __init__(self, madguiParamName, particle,
-                 radius, rIn, rOut, scalFactor):
+                 EUNetName, radius, rIn, rOut, scalFactor):
         super().__init__(madguiParamName,
-                         particle, 1., 1.)
+                         particle, 1., 1., EUNetName)
         self.radius     = radius
         self.rIn        = rIn
         self.rOut       = rOut
@@ -116,14 +118,14 @@ class Deflector(Element):
 
     def setMadxParam(self, voltage):
         # TODO: Implement computation of kick
-        self.madxParam = 0.
+        self.madxParam = -9999.
 
 class BendingMagnet(Element):
 
     def __init__(self, madguiParamName, particle,
-                 lmad, leff, h):
+                 lmad, leff, EUNetName, h):
         super().__init__(madguiParamName,
-                         particle, lmad, leff)
+                         particle, lmad, leff, EUNetName)
         self.bendR = h
 
     def setReadValue(self, current):
@@ -141,8 +143,8 @@ class BendingMagnet(Element):
     def getCurrent(self, BFeld):
         # TODO: Implement current as function of BFeld
         # We need calibration curves B(I)
-        pass
+        raise NotImplementedError
 
     def setMadxParam(self, current):
         # TODO: Implement computation of kick
-        self.madxParam = 0.
+        self.madxParam = -9999.
