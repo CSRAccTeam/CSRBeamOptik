@@ -177,6 +177,9 @@ class EUNetManager:
             dValue /= 1e3
 
         if elem == 'Quadrupole_elektro':
+            print()
+            print('Elektrostatischer Quadrupol')
+            print()
             info   = device['horizontal']
             setHor = info['sollWert']
             crate  = setHor['crate']
@@ -195,6 +198,46 @@ class EUNetManager:
             rawValue = self.computeRawValue(minVal, maxVal, -dValue)
             #client.setValue(crate, card, channel, dValue)
             print('Set vertical value: {} kV -> {}'.format(round(-dValue,3),
+                                                           rawValue))
+
+        if elem == 'Quadrupole_kicker':
+            print()
+            print('Elektrostatischer Quadrupol mit Kicker')
+            print()
+            info   = device['horizontal']
+            setHor = info['sollWert1']
+            crate  = setHor['crate']
+            card   = setHor['card']
+            channel = setHor['channel']
+            rawValue = self.computeRawValue(minVal, maxVal, dValue/2)
+            #client.setValue(crate, card, channel, dValue)
+            print('Set horizontal value: {} kV -> {}'.format(round(dValue/2,3),
+                                                             rawValue))
+            setHor = info['sollWert2']
+            crate  = setHor['crate']
+            card   = setHor['card']
+            channel = setHor['channel']
+            rawValue = self.computeRawValue(minVal, maxVal, dValue/2)
+            #client.setValue(crate, card, channel, dValue)
+            print('Set horizontal value: {} kV -> {}'.format(round(dValue/2,3),
+                                                             rawValue))
+
+            info    = device['vertical']
+            setVer  = info['sollWert1']
+            crate   = setVer['crate']
+            card    = setVer['card']
+            channel = setVer['channel']
+            rawValue = self.computeRawValue(minVal, maxVal, -dValue/2)
+            #client.setValue(crate, card, channel, dValue)
+            print('Set vertical value: {} kV -> {}'.format(round(-dValue/2,3),
+                                                           rawValue))
+            setVer  = info['sollWert2']
+            crate   = setVer['crate']
+            card    = setVer['card']
+            channel = setVer['channel']
+            rawValue = self.computeRawValue(minVal, maxVal, -dValue/2)
+            #client.setValue(crate, card, channel, dValue)
+            print('Set vertical value: {} kV -> {}'.format(round(-dValue/2,3),
                                                            rawValue))
 
 
